@@ -29,7 +29,7 @@
   :group 'org-treescope)
 
 (defcustom org-treescope--modebinding "C-c m"
-  "Binding to initialise org-treescope-mode"
+  "Binding to initialise function `org-treescope-mode'."
   :type 'string
   :group 'org-treescope)
 
@@ -47,16 +47,29 @@
 
 (global-set-key (kbd org-treescope--modebinding) 'org-treescope-mode)
 
+(defvar org-treescope--currentpriorityeq ">=")
+(defvar org-treescope--currentpriority 67)
+
+(defun org-treescope-redraw ()
+  "Redraw the whole thing."
+  (org-match-sparse-tree t (org-treescope--constructall))
+  (message (format "<%s>+P%s%s"
+                   (concat org-treescope--currentdirection
+                           org-treescope--currenttimescale)
+                   org-treescope--currentpriorityeq
+                   org-treescope--currentpriority)))
+
+
 ;; --- Interactives ----
 (defun org-treescope-prioritytoggleeq ()
-  "Changes direction of priority scope"
+  "Change direction of priority scope."
   (interactive)
   (setq org-treescope--currentpriorityeq
         (if (string-equal org-treescope--currentpriorityeq ">=") "<" ">="))
   (org-treescope-redraw))
 
 (defun org-treescope-priorityup ()
-  "Shifts priority threshold in scope up"
+  "Shifts priority threshold in scope up."
   (interactive)
   (let ((nextprior (- org-treescope--currentpriority 1)))
     (unless (< nextprior org-highest-priority)
@@ -64,7 +77,7 @@
     (org-treescope-redraw)))
 
 (defun org-treescope-prioritydown ()
-  "Shifts priority threshold in scope down"
+  "Shifts priority threshold in scope down."
   (interactive)
   (let ((nextprior (+ org-treescope--currentpriority 1)))
     (unless (> nextprior org-lowest-priority)
@@ -72,13 +85,13 @@
     (org-treescope-redraw)))
 
 (defun org-treescope-timeleft ()
-  "move left"
+  "Move left."
   (interactive)
   (org-treescope-time "-")
   (org-treescope-redraw))
 
 (defun org-treescope-timeright ()
-  "move right"
+  "Move right."
   (interactive)
   (org-treescope-time "+")
   (org-treescope-redraw))
@@ -86,7 +99,7 @@
 
 ;; --- Timescales ---
 (defcustom org-treescope--timescales '("off" "1d" "3d" "7d" "2w" "1m" "3m" "6m" "9m" "1y")
-  "The list of timescales to expand/shrink by"
+  "The list of timescales to expand/shrink by."
   :type 'sequence
   :group 'org-treescope)
 ;;(setq org-treescope--timescales '("off" "1d" "3d" "7d" "2w" "1m" "3m" "6m" "9m" "1y"))
@@ -94,7 +107,8 @@
 (setq org-treescope--currentdirection "+")
 
 (defun org-treescope-time (desireddirec)
-  "moves the timescale in a direction sliding left or right"
+  "Move the timescale in a direction sliding left or right.
+Argument DESIREDDIREC The time scope to look at, forward or back."
   (let* ((d org-treescope--currentdirection)
          (ts org-treescope--currenttimescale)
          (allts org-treescope--timescales)
@@ -120,31 +134,24 @@
                (nextts (nth nextindex allts)))
           (setq org-treescope--currenttimescale nextts))))))
 
-(progn (org-treescope-timeright)
-       (concat org-treescope--currentdirection org-treescope--currenttimescale))
-
 
 ;; --- Priority management
 (defcustom org-treescope--defaultpriority
   org-default-priority
-  "Priority to start filtering for"
+  "Priority to start filtering for."
   :type 'integer
   :group 'org-treescope)
 (defcustom org-treescope--priorityalwaysswitcheswithdirection
   t
-  "Whether to change priority scopes when looking forward
-or backwards. If false, then prioritylimit-forward and
-backward have no effect."
+  "Whether to change priority scopes when looking forward or backwards.
+If false, then prioritylimit-forward and backward have no effect."
   :type 'boolean
   :group 'org-treescope)
-
-(setq org-treescope--currentpriorityeq ">=")
-(setq org-treescope--currentpriority 67)
 
 
 ;; --- Construct Logic ---
 (defun org-treescope-constructprioritystring ()
-  "Creates the priority string"
+  "Create the priority string."
   (let ((d org-treescope--currentdirection)
         (switches org-treescope--priorityalwaysswitcheswithdirection))
     (if switches
@@ -159,12 +166,12 @@ backward have no effect."
 
 (defcustom org-treescope--todostates
   '("TODO" "WAITING" "PAUSED")
-  "List of TODO states to include in searches"
+  "List of TODO states to include in searches."
   :type 'sequence
   :group 'org-treescope)
 
 (defun org-treescope--constructall ()
-  "Generate the full string for the filtering"
+  "Generate the full string for the filtering."
   (let* ((d org-treescope--currentdirection)
          (off (string-equal org-treescope--currenttimescale "off"))
          (ineq (if (string-equal d "+") "<=" ">="))
@@ -174,19 +181,13 @@ backward have no effect."
     (if off prior
       ;; else
       (let ((todostates (concat "{" (join "\|" org-treescope--todostates) "}")))
-        (concat 
+        ;; TODO: finish this.
+        (ignore todostates)
+        (concat
          (format "DEADLINE%s\"<%s>\"&TODO=\"TODO\"+%s\|" ineq dater prior)
          (format "SCHEDULED%s\"<%s>\"&TODO=\"TODO\"+%s\|" ineq dater prior)
-         (format "TIMESTAMP%s\"<%s>\"&TODO=\"TODO\"+%s" ineq dater prior))))))
-
-(defun org-treescope-redraw ()
-  "Redraw the whole thing" 
-  (org-match-sparse-tree t (org-treescope--constructall))
-  (message (format "<%s>+P%s%s"
-                   (concat org-treescope--currentdirection
-                           org-treescope--currenttimescale)
-                   org-treescope--currentpriorityeq
-                   org-treescope--currentpriority)))
+         (format "TIMESTAMP%s\"<%s>\"&TODO=\"TODO\"+%s" ineq dater prior))
+        ))))
 
 (provide 'org-treescope)
 
@@ -195,4 +196,6 @@ backward have no effect."
 
 ;; test
 ;;(progn (org-treescope-timeleft)
+;;       (concat org-treescope--currentdirection org-treescope--currenttimescale))
+;;(progn (org-treescope-timeright)
 ;;       (concat org-treescope--currentdirection org-treescope--currenttimescale))
