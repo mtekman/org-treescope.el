@@ -14,188 +14,164 @@
 ;; this week and what was completed last month can be tricky.
 ;; This tool provides a time window to analyse your org file.
 
+;; + Left/Right :: Shift centre day (and whole range) one day to the left/right
+;; + S-Left/Right :: Shift centre day (and whole range) one week to left/right
+;; + C-Left/Right :: Shift right flank one day to left/right
+;; + M-Left/Right :: Shift left flank one day to left/right
+;; + C-M-Left/Right :: All the way left/right from centre day
+;; + C-S-Left/Right :: [..]
+;; + C-M-S-Left/Right :: [..]
+;; +
+;; + Up/Down :: Shift priority range one step up/down
+;; + S-Up/Down :: Shift priority range five steps up/down
+;; + C-Up/Down :: Shift bottom priority flank one step up/down
+;; + M-Up/Down :: Shift top priority flank one step up/down
+;; + C-M-Up/Down :: All the way top/bottom from centre priority -- what does this mean in terms of the search string?
+;; + C-S-Up/Down :: [..]
+;; + C-M-S-Up/Down :: [..]
+
 ;;; Code:
 
-(require 'org)
+;; Edit -- progn is really not necessary here, but I have no
+;;         idea how to bound multiples
 
-(defgroup org-treescope nil
-  "Group for setting org scope options"
-  :prefix "org-treescope-"
-  :group 'org)
+;; -- variables
+(defvar day--leftflank nil)
+(defvar day--rightflank nil)
+(defvar day--midpoint nil)
+(defvar day--frommidpoint-select nil
+  "Possible values are `<=` and `>=`")
 
-(defcustom org-treescope--filename "projects.org"
-  "Name of buffer to interact with."
-  :type 'string
-  :group 'org-treescope)
+;; -- Init --
+(defun reset-values ()
+  "Reset all variables and center around current date."
+  (interactive)
+  (progn
+    (setq day--leftflank nil
+          day--rightflank nil
+          day--midpoint nil
+          day--frommidpoint-select nil)
+    (sensible-values)
+    (update-datestring)))
 
-(defcustom org-treescope--modebinding "C-c m"
-  "Binding to initialise function `org-treescope-mode'."
-  :type 'string
-  :group 'org-treescope)
+(defun sensible-values ()
+  "Checks that all four defvars are initialised and at sensible defaults."
+  (progn
+    ;; We deal with absolute dates, not gregorian.
+    (unless day--midpoint (setq day--midpoint
+                                (calendar-absolute-from-gregorian
+                                 (calendar-current-date))))
+    (unless day--leftflank (setq day--leftflank (- day--midpoint 3)))
+    (unless day--rightflank (setq day--rightflank (+ day--midpoint 3))))
+  ;; -- check sensible values --
+  (unless (< day--leftflank day--rightflank)
+    (setq day--rightflank (+ day--leftflank 1))))
 
-(define-minor-mode org-treescope-mode
-  "Toggle the scoping options"
+;; -- Date Macros
+(defmacro defaults-and-updates (innercode ndays updatenow)
+  "Set default ndays to 1 and updatenow to true, run INNERCODE, and then update-now"
+  `(let ((ndays (or ndays 1))
+         (updatenow (or updatenow t)))
+     (sensible-values)
+     ,innercode
+     (when updatenow (update-datestring))))
+
+(defmacro shift-ranges (positive &optional ndays updatenow)
+  "Call the lowerbound and upperbound with POSITIVE or negative.
+Reset the `day--frommidpoint-select` to nil."
+  (setq day--frommidpoint-select nil)
+  (unless ndays (setq ndays 1))
+  (unless updatenow (setq updatenow t))
+  `(progn
+     (day-lowerbound-backwards ,ndays nil)
+     (day-upperbound-backwards ,ndays nil)
+     (setq day--midpoint (,positive day--midpoint ,ndays))))
+
+
+(defmacro shift-flanks (day-flank positive)
+  "Shift either the TYPE (left or right) flank in a POSITIVE or negative direction"
+  (unless ndays (setq ndays 1))
+  (unless updatenow (setq updatenow t))
+  
+
+    `(setq ,day-flank (,positive ,day-flank ndays))))
+
+;; -- Date Methods
+(defun day-shiftrange-backwards (&optional ndays updatenow)
+  "Shift entire range back by NDAYS and update midpoint.  Redraw if UPDATENOW."
+  (interactive)
+  (shift-ranges - ndays updatenow))
+
+(defun day-shiftrange-forwards (&optional ndays updatenow)
+  "Shift entire range forwards by NDAYS and update midpoint.  Redraw if UPDATENOW."
+  (interactive)
+  (shift-ranges + ndays updatenow))
+
+(defun day-lowerbound-backwards (&optional ndays updatenow)
+  "Move left-flank back by NDAYS.  Redraw if UPDATENOW."
+  (interactive)
+  (shift-flanks day--leftflank -))
+
+(defun day-lowerbound-forwards (&optional ndays updatenow)
+  "Move left-flank forwards by NDAYS.  Redraw if UPDATENOW."
+  (interactive)
+  (shift-flanks day--leftflank +))
+
+(defun day-upperbound-backwards (&optional ndays updatenow)
+  "Move right-flank back by NDAYS.  Redraw if UPDATENOW."
+  (interactive)
+  (shift-flanks day--rightflank -))
+
+(defun day-upperbound-forwards (&optional ndays updatenow)
+  "Move right-flank forwards by NDAYS.  Redraw if UPDATENOW."
+  (interactive)
+  (shift-flanks day--rightflank +))
+
+(defun day-frommidpoint-leftwards (&optional updatenow)
+  "Ignore left and right flanks, and select all dates before midpoint.  Redraw if UPDATENOW."
+  (interactive)
+  (defaults-and-updates
+    (setq day--frommidpoint-select "<=")))
+
+(defun day-frommidpoint-rightwards (&optional updatenow)
+  "Ignore left and right flanks, and select all dates after midpoint.  Redraw if UPDATENOW."
+  (interactive)
+  (defaults-and-updates
+    (setq day--frommidpoint-select ">=")))
+
+;; -- Update method --
+(defun update-datestring ()
+  "Update the date string based on current state."
+  (let ((format-lambda '(lambda (x) (format "%s" x))))
+    (if day--frommidpoint-select
+        (let* ((gregdate-mid (calendar-gregorian-from-absolute day--midpoint))
+               (strdate-mid (mapconcat format-lambda (reverse gregdate-left) "-")))
+          ;; e.g. <=<2020-12-02> or >=<2019-01-31>
+          (message (format "TIMESTAMP%s<%s>" day--frommidpoint-select strdate-mid)))
+      ;; Otherwise set a date range.
+      (let ((gregdate-left  (calendar-gregorian-from-absolute day--leftflank))
+            (gregdate-right (calendar-gregorian-from-absolute day--rightflank)))
+        (let ((strdate-left (mapconcat format-lambda (reverse gregdate-left) "-"))
+              (strdate-right (mapconcat format-lambda (reverse gregdate-right) "-")))
+          (message (format "TIMESTAMP>=<%s>&TIMESTAMP<=<%s>" strdate-left strdate-right)))))))
+
+
+
+(define-minor-mode mode5
+  "Test"
   :init-value nil
   :lighter " scope"
   :keymap
-  '(([left] . org-treescope-timeleft)
-    ([right] . org-treescope-timeright)
-    ([up] . org-treescope-priorityup)
-    ([down] . org-treescope-prioritydown)
-    ([t] . org-treescope-prioritytoggleeq)
-    ([return] . org-treescope-mode)))
+  '(([left] . day-shiftrange-backwards)
+    ([right] . day-shiftrange-forwards)
+    ([C-left] . day-lowerbound-backwards)
+    ([C-right] . day-lowerbound-forwards)
+    ([M-left] . day-upperbound-backwards)
+    ([M-right] . day-upperbound-forwards)
+    ([C-M-left] . day-frommidpoint-leftwards)
+    ([C-M-right] . day-frommidpoint-rightwards)
+    ([down] . reset-values)))
 
-(global-set-key (kbd org-treescope--modebinding) 'org-treescope-mode)
-
-(defvar org-treescope--currentpriorityeq ">=")
-(defvar org-treescope--currentpriority 67)
-
-(defun org-treescope-redraw ()
-  "Redraw the whole thing."
-  (org-match-sparse-tree t (org-treescope--constructall))
-  (message (format "<%s>+P%s%s"
-                   (concat org-treescope--currentdirection
-                           org-treescope--currenttimescale)
-                   org-treescope--currentpriorityeq
-                   org-treescope--currentpriority)))
-
-
-;; --- Interactives ----
-(defun org-treescope-prioritytoggleeq ()
-  "Change direction of priority scope."
-  (interactive)
-  (setq org-treescope--currentpriorityeq
-        (if (string-equal org-treescope--currentpriorityeq ">=") "<" ">="))
-  (org-treescope-redraw))
-
-(defun org-treescope-priorityup ()
-  "Shifts priority threshold in scope up."
-  (interactive)
-  (let ((nextprior (- org-treescope--currentpriority 1)))
-    (unless (< nextprior org-highest-priority)
-      (setq org-treescope--currentpriority nextprior))
-    (org-treescope-redraw)))
-
-(defun org-treescope-prioritydown ()
-  "Shifts priority threshold in scope down."
-  (interactive)
-  (let ((nextprior (+ org-treescope--currentpriority 1)))
-    (unless (> nextprior org-lowest-priority)
-      (setq org-treescope--currentpriority nextprior))
-    (org-treescope-redraw)))
-
-(defun org-treescope-timeleft ()
-  "Move left."
-  (interactive)
-  (org-treescope-time "-")
-  (org-treescope-redraw))
-
-(defun org-treescope-timeright ()
-  "Move right."
-  (interactive)
-  (org-treescope-time "+")
-  (org-treescope-redraw))
-
-
-;; --- Timescales ---
-(defcustom org-treescope--timescales '("off" "1d" "3d" "7d" "2w" "1m" "3m" "6m" "9m" "1y")
-  "The list of timescales to expand/shrink by."
-  :type 'sequence
-  :group 'org-treescope)
-;;(setq org-treescope--timescales '("off" "1d" "3d" "7d" "2w" "1m" "3m" "6m" "9m" "1y"))
-(setq org-treescope--currenttimescale (elt org-treescope--timescales 0))
-(setq org-treescope--currentdirection "+")
-
-(defun org-treescope-time (desireddirec)
-  "Move the timescale in a direction sliding left or right.
-Argument DESIREDDIREC The time scope to look at, forward or back."
-  (let* ((d org-treescope--currentdirection)
-         (ts org-treescope--currenttimescale)
-         (allts org-treescope--timescales)
-         (index (cl-position ts allts))
-         (len (length allts)))
-    (when (eq d "")
-      (setq d desireddirec
-            org-treescope--currentdirection desireddirec))
-    (if (eq d desireddirec)
-        ;; negative to more negative (i.e. we increase the index whilst
-        ;; maintaining negativity
-        (let ((nextindex (+ index 1)))
-          (unless (>= nextindex len)
-            (let ((nextts (nth nextindex allts)))
-              (setq org-treescope--currenttimescale nextts))))
-      ;; Positive to less positive "7d" "1d", or positive to negative "1d" to "-1d"
-      (if (eq index 0)
-          ;; pos to neg, the ts does not change, only direction
-          ;; Switch direction and maintain magnitude if there is no nil
-          (setq org-treescope--currentdirection desireddirec)
-        ;; pos to less pos
-        (let* ((nextindex (- index 1))
-               (nextts (nth nextindex allts)))
-          (setq org-treescope--currenttimescale nextts))))))
-
-
-;; --- Priority management
-(defcustom org-treescope--defaultpriority
-  org-default-priority
-  "Priority to start filtering for."
-  :type 'integer
-  :group 'org-treescope)
-(defcustom org-treescope--priorityalwaysswitcheswithdirection
-  t
-  "Whether to change priority scopes when looking forward or backwards.
-If false, then prioritylimit-forward and backward have no effect."
-  :type 'boolean
-  :group 'org-treescope)
-
-
-;; --- Construct Logic ---
-(defun org-treescope-constructprioritystring ()
-  "Create the priority string."
-  (let ((d org-treescope--currentdirection)
-        (switches org-treescope--priorityalwaysswitcheswithdirection))
-    (if switches
-        ;; Need two separate statements depending on direction
-        (if (eq d "+")
-            (format "PRIORITY>=%d" org-treescope--currentpriority)
-          (format "PRIORITY<%d" org-treescope--currentpriority))
-      ;; Switch left to user
-      (format "PRIORITY%s%d"
-              org-treescope--currentpriorityeq
-              org-treescope--currentpriority))))
-
-(defcustom org-treescope--todostates
-  '("TODO" "WAITING" "PAUSED")
-  "List of TODO states to include in searches."
-  :type 'sequence
-  :group 'org-treescope)
-
-(defun org-treescope--constructall ()
-  "Generate the full string for the filtering."
-  (let* ((d org-treescope--currentdirection)
-         (off (string-equal org-treescope--currenttimescale "off"))
-         (ineq (if (string-equal d "+") "<=" ">="))
-         (dater (concat org-treescope--currentdirection
-                        org-treescope--currenttimescale))
-         (prior (org-treescope-constructprioritystring)))
-    (if off prior
-      ;; else
-      (let ((todostates (concat "{" (join "\|" org-treescope--todostates) "}")))
-        ;; TODO: finish this.
-        (ignore todostates)
-        (concat
-         (format "DEADLINE%s\"<%s>\"&TODO=\"TODO\"+%s\|" ineq dater prior)
-         (format "SCHEDULED%s\"<%s>\"&TODO=\"TODO\"+%s\|" ineq dater prior)
-         (format "TIMESTAMP%s\"<%s>\"&TODO=\"TODO\"+%s" ineq dater prior))
-        ))))
 
 (provide 'org-treescope)
-
 ;;; org-treescope.el ends here
-
-
-;; test
-;;(progn (org-treescope-timeleft)
-;;       (concat org-treescope--currentdirection org-treescope--currenttimescale))
-;;(progn (org-treescope-timeright)
-;;       (concat org-treescope--currentdirection org-treescope--currenttimescale))
