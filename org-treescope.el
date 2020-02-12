@@ -68,39 +68,35 @@
     (setq day--rightflank (+ day--leftflank 1))))
 
 ;; -- Date Macros
-(defmacro defaults-and-updates (innercode ndays updatenow)
+(defmacro defaults-and-updates (innercode)
   "Set default ndays to 1 and updatenow to true, run INNERCODE, and then update-now"
-  `(let ((ndays (or ndays 1))
-         (updatenow (or updatenow t)))
-     (sensible-values)
-     ,innercode
-     (when updatenow (update-datestring))))
+  `'(let ((ndays (or ndays 1))
+          (updatenow (or updatenow t)))
+      (sensible-values)
+      ,innercode
+      (when updatenow (update-datestring))))
 
-(defmacro shift-ranges (positive &optional ndays updatenow)
+(defmacro shift-ranges (positive)
   "Call the lowerbound and upperbound with POSITIVE or negative.
 Reset the `day--frommidpoint-select` to nil."
-  (setq day--frommidpoint-select nil)
-  (unless ndays (setq ndays 1))
-  (unless updatenow (setq updatenow t))
-  `(progn
-     (day-lowerbound-backwards ,ndays nil)
-     (day-upperbound-backwards ,ndays nil)
-     (setq day--midpoint (,positive day--midpoint ,ndays))))
-
+  `(setq day--frommidpoint-select nil)
+  `(defaults-and-updates
+     (progn
+        (day-lowerbound-backwards ndays nil)
+        (day-upperbound-backwards ndays nil)
+        (setq day--midpoint (,positive day--midpoint ndays)))))
 
 (defmacro shift-flanks (day-flank positive)
   "Shift either the TYPE (left or right) flank in a POSITIVE or negative direction"
-  (unless ndays (setq ndays 1))
-  (unless updatenow (setq updatenow t))
-  
-
-    `(setq ,day-flank (,positive ,day-flank ndays))))
+  `(unless ndays (setq ndays 1))
+  `(unless updatenow (setq updatenow t))
+    `(setq ,day-flank (,positive ,day-flank ndays)))
 
 ;; -- Date Methods
 (defun day-shiftrange-backwards (&optional ndays updatenow)
   "Shift entire range back by NDAYS and update midpoint.  Redraw if UPDATENOW."
   (interactive)
-  (shift-ranges - ndays updatenow))
+  (shift-ranges -))
 
 (defun day-shiftrange-forwards (&optional ndays updatenow)
   "Shift entire range forwards by NDAYS and update midpoint.  Redraw if UPDATENOW."
