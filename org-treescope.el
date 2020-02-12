@@ -42,17 +42,17 @@
 (defvar day--frommidpoint-select nil
   "Possible values are `<=` and `>=`")
 
+
 ;; -- Init --
 (defun reset-values ()
   "Reset all variables and center around current date."
   (interactive)
-  (progn
-    (setq day--leftflank nil
-          day--rightflank nil
-          day--midpoint nil
-          day--frommidpoint-select nil)
-    (sensible-values)
-    (update-datestring)))
+  (setq day--leftflank nil
+        day--rightflank nil
+        day--midpoint nil
+        day--frommidpoint-select nil)
+  (sensible-values)
+  (update-datestring))
 
 (defun sensible-values ()
   "Checks that all four defvars are initialised and at sensible defaults."
@@ -68,29 +68,27 @@
     (setq day--rightflank (+ day--leftflank 1))))
 
 ;; -- Date Macros
-(defmacro defaults-and-updates (innercode)
+(defmacro defaults-and-updates (&rest innercode)
   "Set default ndays to 1 and updatenow to true, run INNERCODE, and then update-now"
-  `'(let ((ndays (or ndays 1))
-          (updatenow (or updatenow t)))
-      (sensible-values)
-      ,innercode
-      (when updatenow (update-datestring))))
+  `(let ((ndays (or ndays 1))
+         (updatenow (or updatenow t)))
+     (progn (sensible-values)
+            ,@innercode
+            (if updatenow (update-datestring)))))
 
 (defmacro shift-ranges (positive)
   "Call the lowerbound and upperbound with POSITIVE or negative.
 Reset the `day--frommidpoint-select` to nil."
   `(setq day--frommidpoint-select nil)
   `(defaults-and-updates
-     (progn
-        (day-lowerbound-backwards ndays nil)
-        (day-upperbound-backwards ndays nil)
-        (setq day--midpoint (,positive day--midpoint ndays)))))
+    (day-lowerbound-backwards ndays nil)
+    (day-upperbound-backwards ndays nil)
+    (setq day--midpoint (,positive day--midpoint ndays))))
 
 (defmacro shift-flanks (day-flank positive)
   "Shift either the TYPE (left or right) flank in a POSITIVE or negative direction"
-  `(unless ndays (setq ndays 1))
-  `(unless updatenow (setq updatenow t))
-    `(setq ,day-flank (,positive ,day-flank ndays)))
+  `(defaults-and-updates
+     (setq ,day-flank (,positive ,day-flank ndays))))
 
 ;; -- Date Methods
 (defun day-shiftrange-backwards (&optional ndays updatenow)
@@ -101,7 +99,7 @@ Reset the `day--frommidpoint-select` to nil."
 (defun day-shiftrange-forwards (&optional ndays updatenow)
   "Shift entire range forwards by NDAYS and update midpoint.  Redraw if UPDATENOW."
   (interactive)
-  (shift-ranges + ndays updatenow))
+  (shift-ranges +))
 
 (defun day-lowerbound-backwards (&optional ndays updatenow)
   "Move left-flank back by NDAYS.  Redraw if UPDATENOW."
