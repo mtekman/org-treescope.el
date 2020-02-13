@@ -56,34 +56,39 @@
 
 (defun sensible-values ()
   "Checks that all four defvars are initialised and at sensible defaults."
+  ;; We deal with absolute dates, not gregorian.
+  (unless day--midpoint
+    (setq day--midpoint
+          (calendar-absolute-from-gregorian
+           (calendar-current-date))))
   (progn
-    ;; We deal with absolute dates, not gregorian.
-    (unless day--midpoint (setq day--midpoint
-                                (calendar-absolute-from-gregorian
-                                 (calendar-current-date))))
     (unless day--leftflank (setq day--leftflank (- day--midpoint 3)))
     (unless day--rightflank (setq day--rightflank (+ day--midpoint 3))))
   ;; -- check sensible values --
-  (unless (< day--leftflank day--rightflank)
-    (setq day--rightflank (+ day--leftflank 1))))
+  (if (> day--leftflank day--rightflank)
+      (setq day--rightflank (+ day--leftflank 1)))
+  (if (< day--rightflank day--leftflank)
+      (setq day--leftflank (- day--rightflank 1))))
+  ;; TODO: Add clauses for what the midpoint is doing
+
 
 ;; -- Date Macros
 (defmacro defaults-and-updates (&rest innercode)
   "Set default ndays to 1 and updatenow to true, run INNERCODE, and then update-now"
-  `(let ((ndays (or ndays 1))
-         (updatenow (or updatenow t)))
-     (progn (sensible-values)
-            ,@innercode)
+  `(let ((ndays (or 1 ndays))
+         (updatenow (not (or nil updatenow))))
+     (progn ,@innercode
+            (sensible-values))
      (if updatenow (update-datestring))))
 
 (defmacro shift-ranges (positive lowerb upperb)
   "Call the lowerbound and upperbound with POSITIVE or negative.
 Reset the `day--frommidpoint-select` to nil."
-  `(setq day--frommidpoint-select nil)
   `(defaults-and-updates
      (,lowerb ndays nil)
      (,upperb ndays nil)
-     (setq day--midpoint (,positive day--midpoint ndays))))
+     (setq day--midpoint (,positive day--midpoint ndays))
+     (setq day--frommidpoint-select nil)))
 
 (defmacro shift-flanks (day-flank positive)
   "Shift either the TYPE (left or right) flank in a POSITIVE or negative direction"
@@ -103,31 +108,33 @@ Reset the `day--frommidpoint-select` to nil."
 
 (defun day-lowerbound-forwards (&optional ndays updatenow)
   "Move left-flank by NDAYS forwards.  Redraw if UPDATENOW."
+  (interactive)
   (shift-flanks day--leftflank +))
 
 (defun day-lowerbound-backwards (&optional ndays updatenow)
   "Move left-flank by NDAYS backwards.  Redraw if UPDATENOW."
+  (interactive)
   (shift-flanks day--leftflank -))
 
 (defun day-upperbound-forwards (&optional ndays updatenow)
   "Move right-flank by NDAYS forwards.  Redraw if UPDATENOW."
+  (interactive)
   (shift-flanks day--rightflank +))
 
 (defun day-upperbound-backwards (&optional ndays updatenow)
   "Move right-flank by NDAYS backwards.  Redraw if UPDATENOW."
+  (interactive)
   (shift-flanks day--rightflank -))
 
 (defun day-frommidpoint-leftwards (&optional updatenow)
   "Ignore left and right flanks, and select all dates before midpoint.  Redraw if UPDATENOW."
   (interactive)
-  (defaults-and-updates
-    (setq day--frommidpoint-select "<=")))
+  (defaults-and-updates (setq day--frommidpoint-select "<=")))
 
 (defun day-frommidpoint-rightwards (&optional updatenow)
   "Ignore left and right flanks, and select all dates after midpoint.  Redraw if UPDATENOW."
   (interactive)
-  (defaults-and-updates
-    (setq day--frommidpoint-select ">=")))
+  (defaults-and-updates (setq day--frommidpoint-select ">=")))
 
 ;; -- Update method --
 (defun update-datestring ()
@@ -135,7 +142,7 @@ Reset the `day--frommidpoint-select` to nil."
   (let ((format-lambda '(lambda (x) (format "%s" x))))
     (if day--frommidpoint-select
         (let* ((gregdate-mid (calendar-gregorian-from-absolute day--midpoint))
-               (strdate-mid (mapconcat format-lambda (reverse gregdate-left) "-")))
+               (strdate-mid (mapconcat format-lambda (reverse gregdate-mid) "-")))
           ;; e.g. <=<2020-12-02> or >=<2019-01-31>
           (message (format "TIMESTAMP%s<%s>" day--frommidpoint-select strdate-mid)))
       ;; Otherwise set a date range.
@@ -143,9 +150,9 @@ Reset the `day--frommidpoint-select` to nil."
             (gregdate-right (calendar-gregorian-from-absolute day--rightflank)))
         (let ((strdate-left (mapconcat format-lambda (reverse gregdate-left) "-"))
               (strdate-right (mapconcat format-lambda (reverse gregdate-right) "-")))
-          (message (format "TIMESTAMP>=<%s>&TIMESTAMP<=<%s>" strdate-left strdate-right)))))))
-
-
+          (message (format "TIMESTAMP>=<%s>&TIMESTAMP<=<%s>" strdate-left strdate-right))))))
+  ;; For some reason shift-ranges does not parse it unless I put it here
+  (setq day--frommidpoint-select nil))
 
 (define-minor-mode mode6
   "Test"
