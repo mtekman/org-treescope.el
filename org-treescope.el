@@ -52,7 +52,7 @@
         day--midpoint nil
         day--frommidpoint-select nil)
   (sensible-values)
-  (update-datestring))
+  (update-all t))
 
 (defun sensible-values ()
   "Checks that all four defvars are initialised and at sensible defaults."
@@ -79,7 +79,7 @@
          (updatenow (not (or nil updatenow))))
      (progn ,@innercode
             (sensible-values))
-     (if updatenow (update-datestring))))
+     (if updatenow (update-all))))
 
 (defmacro shift-ranges (positive lowerb upperb)
   "Call the lowerbound and upperbound with POSITIVE or negative.
@@ -154,6 +154,30 @@ Reset the `day--frommidpoint-select` to nil."
   ;; For some reason shift-ranges does not parse it unless I put it here
   (setq day--frommidpoint-select nil))
 
+(defun calendar-isopen ()
+  "True if calendar is showing"
+  (member "*Calendar*"
+          (--map (buffer-name (window-buffer it)) (window-list))))
+
+(defun update-calendar ()
+  "Show and update the calendar to show the left, right, and middle flanks."
+  (let ((cb (current-buffer)))
+    (unless (calendar-isopen)
+      (calendar))
+    ;; (get-buffer-window cb)
+    (mode6 t)
+    (calendar-unmark)
+    ;; TODO highlight intermediate days, and give midday a different color
+    (calendar-mark-visible-date (calendar-gregorian-from-absolute day--leftflank))
+    (calendar-mark-visible-date (calendar-gregorian-from-absolute day--rightflank))
+    (calendar-mark-visible-date (calendar-gregorian-from-absolute day--midpoint))))
+
+(defun update-all (&optional silent)
+  "Update the datestring and show on calendar."
+  (update-datestring)
+  (if (not silent) (update-calendar)))
+
+                              
 (define-minor-mode mode6
   "Test"
   :init-value nil
