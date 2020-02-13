@@ -73,17 +73,17 @@
   `(let ((ndays (or ndays 1))
          (updatenow (or updatenow t)))
      (progn (sensible-values)
-            ,@innercode
-            (if updatenow (update-datestring)))))
+            ,@innercode)
+     (if updatenow (update-datestring))))
 
-(defmacro shift-ranges (positive)
+(defmacro shift-ranges (positive lowerb upperb)
   "Call the lowerbound and upperbound with POSITIVE or negative.
 Reset the `day--frommidpoint-select` to nil."
   `(setq day--frommidpoint-select nil)
   `(defaults-and-updates
-    (day-lowerbound-backwards ndays nil)
-    (day-upperbound-backwards ndays nil)
-    (setq day--midpoint (,positive day--midpoint ndays))))
+     (,lowerb ndays nil)
+     (,upperb ndays nil)
+     (setq day--midpoint (,positive day--midpoint ndays))))
 
 (defmacro shift-flanks (day-flank positive)
   "Shift either the TYPE (left or right) flank in a POSITIVE or negative direction"
@@ -94,32 +94,28 @@ Reset the `day--frommidpoint-select` to nil."
 (defun day-shiftrange-backwards (&optional ndays updatenow)
   "Shift entire range back by NDAYS and update midpoint.  Redraw if UPDATENOW."
   (interactive)
-  (shift-ranges -))
+  (shift-ranges - day-lowerbound-backwards day-upperbound-backwards))
 
 (defun day-shiftrange-forwards (&optional ndays updatenow)
   "Shift entire range forwards by NDAYS and update midpoint.  Redraw if UPDATENOW."
   (interactive)
-  (shift-ranges +))
-
-(defun day-lowerbound-backwards (&optional ndays updatenow)
-  "Move left-flank back by NDAYS.  Redraw if UPDATENOW."
-  (interactive)
-  (shift-flanks day--leftflank -))
+  (shift-ranges + day-lowerbound-forwards day-upperbound-forwards))
 
 (defun day-lowerbound-forwards (&optional ndays updatenow)
-  "Move left-flank forwards by NDAYS.  Redraw if UPDATENOW."
-  (interactive)
+  "Move left-flank by NDAYS forwards.  Redraw if UPDATENOW."
   (shift-flanks day--leftflank +))
 
-(defun day-upperbound-backwards (&optional ndays updatenow)
-  "Move right-flank back by NDAYS.  Redraw if UPDATENOW."
-  (interactive)
-  (shift-flanks day--rightflank -))
+(defun day-lowerbound-backwards (&optional ndays updatenow)
+  "Move left-flank by NDAYS backwards.  Redraw if UPDATENOW."
+  (shift-flanks day--leftflank -))
 
 (defun day-upperbound-forwards (&optional ndays updatenow)
-  "Move right-flank forwards by NDAYS.  Redraw if UPDATENOW."
-  (interactive)
+  "Move right-flank by NDAYS forwards.  Redraw if UPDATENOW."
   (shift-flanks day--rightflank +))
+
+(defun day-upperbound-backwards (&optional ndays updatenow)
+  "Move right-flank by NDAYS backwards.  Redraw if UPDATENOW."
+  (shift-flanks day--rightflank -))
 
 (defun day-frommidpoint-leftwards (&optional updatenow)
   "Ignore left and right flanks, and select all dates before midpoint.  Redraw if UPDATENOW."
@@ -151,7 +147,7 @@ Reset the `day--frommidpoint-select` to nil."
 
 
 
-(define-minor-mode mode5
+(define-minor-mode mode6
   "Test"
   :init-value nil
   :lighter " scope"
