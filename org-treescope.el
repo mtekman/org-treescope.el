@@ -52,7 +52,7 @@
         day--midpoint nil
         day--frommidpoint-select nil)
   (sensible-values)
-  (update-all t))
+  (update-all))
 
 (defun sensible-values ()
   "Checks that all four defvars are initialised and at sensible defaults."
@@ -61,9 +61,8 @@
     (setq day--midpoint
           (calendar-absolute-from-gregorian
            (calendar-current-date))))
-  (progn
-    (unless day--leftflank (setq day--leftflank (- day--midpoint 3)))
-    (unless day--rightflank (setq day--rightflank (+ day--midpoint 3))))
+  (unless day--leftflank (setq day--leftflank (- day--midpoint 3)))
+  (unless day--rightflank (setq day--rightflank (+ day--midpoint 3)))
   ;; -- check sensible values --
   (if (> day--leftflank day--rightflank)
       (setq day--rightflank (+ day--leftflank 1)))
@@ -93,7 +92,10 @@ Reset the `day--frommidpoint-select` to nil."
 (defmacro shift-flanks (day-flank positive)
   "Shift either the TYPE (left or right) flank in a POSITIVE or negative direction"
   `(defaults-and-updates
-     (setq ,day-flank (,positive ,day-flank ndays))))
+     (setq ,day-flank (,positive ,day-flank ndays))
+     (if (or (< day--midpoint day--leftflank)
+             (> day--midpoint day--rightflank))
+         (setq day--midpoint ,day-flank))))
 
 ;; -- Date Methods
 (defun day-shiftrange-backwards (&optional ndays updatenow)
@@ -159,6 +161,9 @@ Reset the `day--frommidpoint-select` to nil."
   (member "*Calendar*"
           (--map (buffer-name (window-buffer it)) (window-list))))
 
+(defmacro markdate (abs face)
+  `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
+
 (defun update-calendar ()
   "Show and update the calendar to show the left, right, and middle flanks."
   (let ((cb (current-buffer)))
@@ -167,17 +172,17 @@ Reset the `day--frommidpoint-select` to nil."
     ;; (get-buffer-window cb)
     (mode6 t)
     (calendar-unmark)
-    ;; TODO highlight intermediate days, and give midday a different color
-    (calendar-mark-visible-date (calendar-gregorian-from-absolute day--leftflank))
-    (calendar-mark-visible-date (calendar-gregorian-from-absolute day--rightflank))
-    (calendar-mark-visible-date (calendar-gregorian-from-absolute day--midpoint))))
+    (dolist (absdate (number-sequence day--leftflank day--rightflank))
+      (cond
+       ((eq absdate day--midpoint) (markdate day--midpoint midday-marker))
+       (t (markdate absdate range-marker))))))
 
 (defun update-all (&optional silent)
   "Update the datestring and show on calendar."
   (update-datestring)
   (if (not silent) (update-calendar)))
 
-                              
+
 (define-minor-mode mode6
   "Test"
   :init-value nil
@@ -191,8 +196,37 @@ Reset the `day--frommidpoint-select` to nil."
     ([M-right] . day-upperbound-forwards)
     ([C-M-left] . day-frommidpoint-leftwards)
     ([C-M-right] . day-frommidpoint-rightwards)
-    ([down] . reset-values)))
+    ([down] . reset-values)
+    ([return] . mode6)))
 
+;; -- Faces --
+(defface marker-range
+  '((((class color) (background light))
+     :background "darkblue")
+    (((class color) (background dark))
+     :background "darkblue")
+    (t :inverse-video t))
+  "Face for showing the range markers."
+  :group 'treescope-faces)
+
+(defface marker-midday
+  '((((class color) (background light))
+     :background "green")
+    (((class color) (background dark))
+     :background "green")
+    (t :inverse-video t))
+  "Face for showing the middle marker."
+  :group 'treescope-faces)
+
+(defcustom range-marker 'marker-range
+  "How to highlight all days covered by the ranges in the calendar."
+  :type '(choice (string :tag "Single character string") face)
+  :group 'treescope)
+
+(defcustom midday-marker 'marker-midday
+  "How to highlight all days covered by the ranges in the calendar."
+  :type '(choice (string :tag "Single character string") face)
+  :group 'treescope)
 
 (provide 'org-treescope)
 ;;; org-treescope.el ends here
