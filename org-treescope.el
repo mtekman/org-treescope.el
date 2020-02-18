@@ -156,6 +156,56 @@ Reset the `day--frommidpoint-select` to nil."
   ;; For some reason shift-ranges does not parse it unless I put it here
   (setq day--frommidpoint-select nil))
 
+
+;; --- Todos and Priorities ---
+(defvar state-times nil "Final form string component of TIME range")
+(defvar state-todos nil "Final form string component of TODO states")
+(defvar state-priority nil "Final form string component of PRIORITY states")
+
+
+(defvar todogroups-state nil  "Current state of TODO custom group.")
+(defcustom todogroups
+  '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING"))
+  "List of TODO groups to show in buffer.  A value of nil shows all."
+  :type 'list
+  :group 'treescope)
+
+(defvar prioritygroups-state nil  "Current state of GROUP custom group.")
+(defcustom prioritygroups
+  '(nil (65 68) (65 70) (70 75))
+  "List of PRIORITY ranges (lowest highest) to show in buffer.  A value of nil shows all."
+  :type 'list
+  :group 'treescope)
+
+(defmacro next-state (statecurrent statelist &rest rest)
+  "Set the next state in the STATELIST from the STATECURRENT."
+  `(let* ((now-index (or (position ,statecurrent ,statelist :test 'equal) 0))
+          (nxt-index (mod (+ 1 now-index) (length ,statelist))))
+     (let ((nxt-state (nth nxt-index ,statelist)))
+       (setq ,statecurrent nxt-state)
+       ,@rest)))
+
+(defun cycle-todo-states ()
+  "Cycle the TODO groups given by the `todogroups` variable."
+  (interactive)
+  (next-state
+   todogroups-state todogroups
+   (if nxt-state
+       (let* ((string-fmt (mapconcat 'identity nxt-state "\\|"))
+              (string-out (format "TODO={%s}" string-fmt)))
+         (setq state-todos string-out))
+     (setq state-todos nil))))
+
+(defun cycle-priority-states ()
+  "Cycle the PRIORITY groups given by the `todogroups` variable."
+  (interactive)
+  (next-state
+   prioritygroups-state prioritygroups
+   (if nxt-state
+       (let ((string-out `(format "PRIORITY>=%s&PRIORITY<=%s" ,@prioritygroups-state)))
+         (setq state-priority (eval string-out)))
+     (setq state-priority nil))))
+
 ;; -- Calendar Functions
 (defun calendar-isopen ()
   "True if calendar is showing"
