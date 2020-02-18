@@ -42,7 +42,6 @@
 (defvar day--frommidpoint-select nil
   "Possible values are `<=` and `>=`")
 
-
 ;; -- Init --
 (defun reset-values ()
   "Reset all variables and center around current date."
@@ -146,16 +145,18 @@ Reset the `day--frommidpoint-select` to nil."
         (let* ((gregdate-mid (calendar-gregorian-from-absolute day--midpoint))
                (strdate-mid (mapconcat format-lambda (reverse gregdate-mid) "-")))
           ;; e.g. <=<2020-12-02> or >=<2019-01-31>
-          (message (format "TIMESTAMP%s<%s>" day--frommidpoint-select strdate-mid)))
+          (setq state-times (format "TIMESTAMP%s<%s>" day--frommidpoint-select strdate-mid)))
       ;; Otherwise set a date range.
       (let ((gregdate-left  (calendar-gregorian-from-absolute day--leftflank))
             (gregdate-right (calendar-gregorian-from-absolute day--rightflank)))
         (let ((strdate-left (mapconcat format-lambda (reverse gregdate-left) "-"))
               (strdate-right (mapconcat format-lambda (reverse gregdate-right) "-")))
-          (message (format "TIMESTAMP>=<%s>&TIMESTAMP<=<%s>" strdate-left strdate-right))))))
+          (setq state-times (format "TIMESTAMP>=<%s>&TIMESTAMP<=<%s>" strdate-left strdate-right)))))
+    (message state-times))
   ;; For some reason shift-ranges does not parse it unless I put it here
   (setq day--frommidpoint-select nil))
 
+;; -- Calendar Functions
 (defun calendar-isopen ()
   "True if calendar is showing"
   (member "*Calendar*"
