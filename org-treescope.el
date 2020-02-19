@@ -27,17 +27,17 @@
 (defvar day--frommidpoint-select nil "Possible values are `<=` and `>=`.")
 
 ;; -- Init --
-(defun initialise ()
+(defun org-treescope-initialise-reset ()
   "Reset all variables and center around current date."
   (interactive)
   (setq day--leftflank nil
         day--rightflank nil
         day--midpoint nil
         day--frommidpoint-select nil)
-  (sensible-values)
-  (update-all))
+  (org-treescope--sensible-values)
+  (org-treescope--update-all))
 
-(defun sensible-values ()
+(defun org-treescope--sensible-values ()
   "Check that all time flankers are initialised and at sensible defaults."
   ;; We deal with absolute dates, not gregorian.
   (unless day--midpoint
@@ -60,8 +60,8 @@
   `(let ((ndays (or 1 ndays))
          (updatenow (not (or nil updatenow))))
      (progn ,@innercode
-            (sensible-values))
-     (if updatenow (update-all))))
+            (org-treescope--sensible-values))
+     (if updatenow (org-treescope--update-all))))
 
 (defmacro shift-ranges (direction lowerb upperb)
   "Call the LOWERB and UPPERB (low/up bounds) in DIRECTION.
@@ -81,48 +81,48 @@ Reset the `day--frommidpoint-select` to nil."
          (setq day--midpoint ,day-flank))))
 
 ;; -- Date Methods
-(defun day-shiftrange-backwards (&optional ndays updatenow)
+(defun org-treescope-day-shiftrange-backwards (&optional ndays updatenow)
   "Shift entire range back by NDAYS and update midpoint.  Redraw if UPDATENOW."
   (interactive)
-  (shift-ranges - day-lowerbound-backwards day-upperbound-backwards))
+  (shift-ranges - org-treescope-day-lowerbound-backwards org-treescope-day-upperbound-backwards))
 
-(defun day-shiftrange-forwards (&optional ndays updatenow)
+(defun org-treescope-day-shiftrange-forwards (&optional ndays updatenow)
   "Shift entire range forwards by NDAYS and update midpoint.  Redraw if UPDATENOW."
   (interactive)
-  (shift-ranges + day-lowerbound-forwards day-upperbound-forwards))
+  (shift-ranges + org-treescope-day-lowerbound-forwards org-treescope-day-upperbound-forwards))
 
-(defun day-lowerbound-forwards (&optional ndays updatenow)
+(defun org-treescope-day-lowerbound-forwards (&optional ndays updatenow)
   "Move left-flank by NDAYS forwards.  Redraw if UPDATENOW."
   (interactive)
   (shift-flanks day--leftflank +))
 
-(defun day-lowerbound-backwards (&optional ndays updatenow)
+(defun org-treescope-day-lowerbound-backwards (&optional ndays updatenow)
   "Move left-flank by NDAYS backwards.  Redraw if UPDATENOW."
   (interactive)
   (shift-flanks day--leftflank -))
 
-(defun day-upperbound-forwards (&optional ndays updatenow)
+(defun org-treescope-day-upperbound-forwards (&optional ndays updatenow)
   "Move right-flank by NDAYS forwards.  Redraw if UPDATENOW."
   (interactive)
   (shift-flanks day--rightflank +))
 
-(defun day-upperbound-backwards (&optional ndays updatenow)
+(defun org-treescope-day-upperbound-backwards (&optional ndays updatenow)
   "Move right-flank by NDAYS backwards.  Redraw if UPDATENOW."
   (interactive)
   (shift-flanks day--rightflank -))
 
-(defun day-frommidpoint-leftwards (&optional updatenow)
+(defun org-treescope-day-frommidpoint-leftwards (&optional updatenow)
   "Ignore left and right flanks, and select all dates before midpoint.  Redraw if UPDATENOW."
   (interactive)
   (defaults-and-updates (setq day--frommidpoint-select "<=")))
 
-(defun day-frommidpoint-rightwards (&optional updatenow)
+(defun org-treescope-day-frommidpoint-rightwards (&optional updatenow)
   "Ignore left and right flanks, and select all dates after midpoint.  Redraw if UPDATENOW."
   (interactive)
   (defaults-and-updates (setq day--frommidpoint-select ">=")))
 
 ;; -- Update method --
-(defun update-datestring ()
+(defun org-treescope--update-datestring ()
   "Update the date string based on current state."
   ;; For some reason shift-ranges does not parse it unless I put it here
   (let ((format-lambda '(lambda (x) (format "%s" x))))
@@ -138,29 +138,29 @@ Reset the `day--frommidpoint-select` to nil."
               (strdate-right (mapconcat format-lambda (reverse gregdate-right) "-")))
           (format "TIMESTAMP>=<%s>&TIMESTAMP<=<%s>" strdate-left strdate-right))))))
 
-(defun update-all (&optional silent)
+(defun org-treescope--update-all (&optional silent)
   "Update the dates, todos, priorities and show on calendar if not SILENT."
   (let ((priority-string
-         (if prioritygroups-state
+         (if org-treescope--prioritygroups-state
              (eval `(format "PRIORITY>=%s&PRIORITY<=%s"
-                            ,@prioritygroups-state))))
+                            ,@org-treescope--prioritygroups-state))))
         (todo-string
-         (if todogroups-state
+         (if org-treescope--todogroups-state
              (let* ((string-fmt
                      (mapconcat 'identity
-                                todogroups-state "\\|")))
+                                org-treescope--todogroups-state "\\|")))
                (format "TODO={%s}" string-fmt))))
-        (date-string (update-datestring)))
+        (date-string (org-treescope--update-datestring)))
     (setq day--frommidpoint-select nil)
-    (unless silent (update-calendar))
+    (unless silent (org-treescope--update-calendar))
     (let* ((slist `(,date-string ,todo-string ,priority-string))
            (mlist (--filter (if it it) slist))
            (formt (mapconcat 'identity mlist "&")))
       (message formt))))
 
 ;; --- Todos and Priorities ---
-(defvar todogroups-state nil  "Current state of TODO custom group.")
-(defvar prioritygroups-state nil  "Current state of GROUP custom group.")
+(defvar org-treescope--todogroups-state nil  "Current state of TODO custom group.")
+(defvar org-treescope--prioritygroups-state nil  "Current state of GROUP custom group.")
 
 (defcustom todogroups
   '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING"))
@@ -180,34 +180,34 @@ Reset the `day--frommidpoint-select` to nil."
           (nxt-index (mod (,direction now-index 1) (length ,statelist)))
           (nxt-state (nth nxt-index ,statelist)))
      (setq ,statecurrent nxt-state)
-     (update-all t)))
+     (org-treescope--update-all t)))
 
-(defun cycle-todostates-forwards ()
+(defun org-treescope-cycle-todostates-forwards ()
   "Cycle the TODO groups given by the `todogroups` variable forward."
   (interactive)
-  (next-state todogroups-state todogroups +))
+  (next-state org-treescope--todogroups-state todogroups +))
 
-(defun cycle-todostates-backwards ()
+(defun org-treescope-cycle-todostates-backwards ()
   "Cycle the TODO groups given by the `todogroups` variable forward."
   (interactive)
-  (next-state todogroups-state todogroups -))
+  (next-state org-treescope--todogroups-state todogroups -))
 
-(defun cycle-prioritystates-forwards ()
+(defun org-treescope-cycle-prioritystates-forwards ()
   "Cycle the PRIORITY groups given by the `todogroups` variable forward."
   (interactive)
-  (next-state prioritygroups-state prioritygroups +))
+  (next-state org-treescope--prioritygroups-state prioritygroups +))
 
-(defun cycle-prioritystates-backwards ()
+(defun org-treescope-cycle-prioritystates-backwards ()
   "Cycle the PRIORITY groups given by the `todogroups` variable forward."
   (interactive)
-  (next-state prioritygroups-state prioritygroups -))
+  (next-state org-treescope--prioritygroups-state prioritygroups -))
 
 ;; -- Calendar Functions
 (defmacro markdate (abs face)
   "Takes an ABS date and highlight it on the calendar with FACE."
   `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
 
-(defun update-calendar ()
+(defun org-treescope--update-calendar ()
   "Show and update the calendar to show the left, right, and middle flanks."
   (unless (member "*Calendar*"
                   (--map (buffer-name (window-buffer it)) (window-list)))
@@ -221,30 +221,30 @@ Reset the `day--frommidpoint-select` to nil."
     ;; Normal Flanking Range
     (dolist (absdate (number-sequence day--leftflank day--rightflank))
       (cond
-       ((eq absdate day--midpoint) (markdate day--midpoint midday-marker))
-       (t (markdate absdate range-marker))))))
+       ((eq absdate day--midpoint) (markdate day--midpoint org-treescope-midday-marker))
+       (t (markdate absdate org-treescope-range-marker))))))
 
 (define-minor-mode mode7
   "Test"
   :init-value nil
   :lighter " scope"
   :keymap
-  '(([left] . day-shiftrange-backwards)
-    ([right] . day-shiftrange-forwards)
-    ([C-left] . day-lowerbound-backwards)
-    ([C-right] . day-lowerbound-forwards)
-    ([M-left] . day-upperbound-backwards)
-    ([M-right] . day-upperbound-forwards)
-    ([C-M-left] . day-frommidpoint-leftwards)
-    ([C-M-right] . day-frommidpoint-rightwards)
-    ([C-up] . cycle-todostates-forwards)
-    ([C-down] . cycle-todostates-backwards)
-    ([M-up] . cycle-prioritystates-forwards)
-    ([M-down] . cycle-prioritystates-backwards)
-    ([down] . initialise)))
+  '(([left] . org-treescope-day-shiftrange-backwards)
+    ([right] . org-treescope-day-shiftrange-forwards)
+    ([C-left] . org-treescope-day-lowerbound-backwards)
+    ([C-right] . org-treescope-day-lowerbound-forwards)
+    ([M-left] . org-treescope-day-upperbound-backwards)
+    ([M-right] . org-treescope-day-upperbound-forwards)
+    ([C-M-left] . org-treescope-day-frommidpoint-leftwards)
+    ([C-M-right] . org-treescope-day-frommidpoint-rightwards)
+    ([C-up] . org-treescope-cycle-todostates-forwards)
+    ([C-down] . org-treescope-cycle-todostates-backwards)
+    ([M-up] . org-treescope-cycle-prioritystates-forwards)
+    ([M-down] . org-treescope-cycle-prioritystates-backwards)
+    ([down] . org-treescope-initialise-reset)))
 
 ;; -- Faces --
-(defface marker-range
+(defface org-treescope-marker-range
   '((((class color) (background light))
      :background "darkblue")
     (((class color) (background dark))
@@ -253,7 +253,7 @@ Reset the `day--frommidpoint-select` to nil."
   "Face for showing the range markers."
   :group 'treescope-faces)
 
-(defface marker-midday
+(defface org-treescope-marker-midday
   '((((class color) (background light))
      :background "green")
     (((class color) (background dark))
@@ -262,12 +262,12 @@ Reset the `day--frommidpoint-select` to nil."
   "Face for showing the middle marker."
   :group 'treescope-faces)
 
-(defcustom range-marker 'marker-range
+(defcustom org-treescope-range-marker 'org-treescope-marker-range
   "How to highlight all days covered by the ranges in the calendar."
   :type '(choice (string :tag "Single character string") face)
   :group 'treescope)
 
-(defcustom midday-marker 'marker-midday
+(defcustom org-treescope-midday-marker 'org-treescope-marker-midday
   "How to highlight all days covered by the ranges in the calendar."
   :type '(choice (string :tag "Single character string") face)
   :group 'treescope)
