@@ -14,36 +14,20 @@
 ;; this week and what was completed last month can be tricky.
 ;; This tool provides a time window to analyse your org file.
 
-;; + Left/Right :: Shift centre day (and whole range) one day to the left/right
-;; + S-Left/Right :: Shift centre day (and whole range) one week to left/right
-;; + C-Left/Right :: Shift right flank one day to left/right
-;; + M-Left/Right :: Shift left flank one day to left/right
-;; + C-M-Left/Right :: All the way left/right from centre day
-;; + C-S-Left/Right :: [..]
-;; + C-M-S-Left/Right :: [..]
-;; +
-;; + Up/Down :: Shift priority range one step up/down
-;; + S-Up/Down :: Shift priority range five steps up/down
-;; + C-Up/Down :: Shift bottom priority flank one step up/down
-;; + M-Up/Down :: Shift top priority flank one step up/down
-;; + C-M-Up/Down :: All the way top/bottom from centre priority -- what does this mean in terms of the search string?
-;; + C-S-Up/Down :: [..]
-;; + C-M-S-Up/Down :: [..]
-
 ;;; Code:
 
 ;; Edit -- progn is really not necessary here, but I have no
 ;;         idea how to bound multiples
+(require 'calendar)
 
 ;; -- variables
 (defvar day--leftflank nil)
 (defvar day--rightflank nil)
 (defvar day--midpoint nil)
-(defvar day--frommidpoint-select nil
-  "Possible values are `<=` and `>=`")
+(defvar day--frommidpoint-select nil "Possible values are `<=` and `>=`.")
 
 ;; -- Init --
-(defun reset-values ()
+(defun initialise ()
   "Reset all variables and center around current date."
   (interactive)
   (setq day--leftflank nil
@@ -54,7 +38,7 @@
   (update-all))
 
 (defun sensible-values ()
-  "Checks that all four defvars are initialised and at sensible defaults."
+  "Check that all time flankers are initialised and at sensible defaults."
   ;; We deal with absolute dates, not gregorian.
   (unless day--midpoint
     (setq day--midpoint
@@ -72,24 +56,24 @@
 
 ;; -- Date Macros
 (defmacro defaults-and-updates (&rest innercode)
-  "Set default ndays to 1 and updatenow to true, run INNERCODE, and then update-now"
+  "Set default ndays to 1 and updatenow to true, run INNERCODE, and then update-now."
   `(let ((ndays (or 1 ndays))
          (updatenow (not (or nil updatenow))))
      (progn ,@innercode
             (sensible-values))
      (if updatenow (update-all))))
 
-(defmacro shift-ranges (positive lowerb upperb)
-  "Call the lowerbound and upperbound with POSITIVE or negative.
+(defmacro shift-ranges (direction lowerb upperb)
+  "Call the LOWERB and UPPERB (low/up bounds) in DIRECTION.
 Reset the `day--frommidpoint-select` to nil."
   `(defaults-and-updates
      (,lowerb ndays nil)
      (,upperb ndays nil)
-     (setq day--midpoint (,positive day--midpoint ndays))
+     (setq day--midpoint (,direction day--midpoint ndays))
      (setq day--frommidpoint-select nil)))
 
 (defmacro shift-flanks (day-flank positive)
-  "Shift either the TYPE (left or right) flank in a POSITIVE or negative direction"
+  "Shift either the DAY-FLANK (left or right) flank in a POSITIVE or negative direction."
   `(defaults-and-updates
      (setq ,day-flank (,positive ,day-flank ndays))
      (if (or (< day--midpoint day--leftflank)
@@ -140,101 +124,107 @@ Reset the `day--frommidpoint-select` to nil."
 ;; -- Update method --
 (defun update-datestring ()
   "Update the date string based on current state."
+  ;; For some reason shift-ranges does not parse it unless I put it here
   (let ((format-lambda '(lambda (x) (format "%s" x))))
     (if day--frommidpoint-select
         (let* ((gregdate-mid (calendar-gregorian-from-absolute day--midpoint))
                (strdate-mid (mapconcat format-lambda (reverse gregdate-mid) "-")))
           ;; e.g. <=<2020-12-02> or >=<2019-01-31>
-          (setq state-times (format "TIMESTAMP%s<%s>" day--frommidpoint-select strdate-mid)))
+          (format "TIMESTAMP%s<%s>" day--frommidpoint-select strdate-mid))
       ;; Otherwise set a date range.
       (let ((gregdate-left  (calendar-gregorian-from-absolute day--leftflank))
             (gregdate-right (calendar-gregorian-from-absolute day--rightflank)))
         (let ((strdate-left (mapconcat format-lambda (reverse gregdate-left) "-"))
               (strdate-right (mapconcat format-lambda (reverse gregdate-right) "-")))
-          (setq state-times (format "TIMESTAMP>=<%s>&TIMESTAMP<=<%s>" strdate-left strdate-right)))))
-    (message state-times))
-  ;; For some reason shift-ranges does not parse it unless I put it here
-  (setq day--frommidpoint-select nil))
+          (format "TIMESTAMP>=<%s>&TIMESTAMP<=<%s>" strdate-left strdate-right))))))
 
+(defun update-all (&optional silent)
+  "Update the dates, todos, priorities and show on calendar if not SILENT."
+  (let ((priority-string
+         (if prioritygroups-state
+             (eval `(format "PRIORITY>=%s&PRIORITY<=%s"
+                            ,@prioritygroups-state))))
+        (todo-string
+         (if todogroups-state
+             (let* ((string-fmt
+                     (mapconcat 'identity
+                                todogroups-state "\\|")))
+               (format "TODO={%s}" string-fmt))))
+        (date-string (update-datestring)))
+    (setq day--frommidpoint-select nil)
+    (unless silent (update-calendar))
+    (let* ((slist `(,date-string ,todo-string ,priority-string))
+           (mlist (--filter (if it it) slist))
+           (formt (mapconcat 'identity mlist "&")))
+      (message formt))))
 
 ;; --- Todos and Priorities ---
-(defvar state-times nil "Final form string component of TIME range")
-(defvar state-todos nil "Final form string component of TODO states")
-(defvar state-priority nil "Final form string component of PRIORITY states")
-
-
 (defvar todogroups-state nil  "Current state of TODO custom group.")
+(defvar prioritygroups-state nil  "Current state of GROUP custom group.")
+
 (defcustom todogroups
   '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING"))
   "List of TODO groups to show in buffer.  A value of nil shows all."
   :type 'list
   :group 'treescope)
 
-(defvar prioritygroups-state nil  "Current state of GROUP custom group.")
 (defcustom prioritygroups
   '(nil (65 68) (65 70) (70 75))
   "List of PRIORITY ranges (lowest highest) to show in buffer.  A value of nil shows all."
   :type 'list
   :group 'treescope)
 
-(defmacro next-state (statecurrent statelist &rest rest)
-  "Set the next state in the STATELIST from the STATECURRENT."
-  `(let* ((now-index (or (position ,statecurrent ,statelist :test 'equal) 0))
-          (nxt-index (mod (+ 1 now-index) (length ,statelist))))
-     (let ((nxt-state (nth nxt-index ,statelist)))
-       (setq ,statecurrent nxt-state)
-       ,@rest)))
+(defmacro next-state (statecurrent statelist direction)
+  "Set the next state in the STATELIST from the STATECURRENT, cycling in DIRECTION."
+  `(let* ((now-index (or (cl-position ,statecurrent ,statelist :test 'equal) 0))
+          (nxt-index (mod (,direction now-index 1) (length ,statelist)))
+          (nxt-state (nth nxt-index ,statelist)))
+     (setq ,statecurrent nxt-state)
+     (update-all t)))
 
-(defun cycle-todo-states ()
-  "Cycle the TODO groups given by the `todogroups` variable."
+(defun cycle-todostates-forwards ()
+  "Cycle the TODO groups given by the `todogroups` variable forward."
   (interactive)
-  (next-state
-   todogroups-state todogroups
-   (if nxt-state
-       (let* ((string-fmt (mapconcat 'identity nxt-state "\\|"))
-              (string-out (format "TODO={%s}" string-fmt)))
-         (setq state-todos string-out))
-     (setq state-todos nil))))
+  (next-state todogroups-state todogroups +))
 
-(defun cycle-priority-states ()
-  "Cycle the PRIORITY groups given by the `todogroups` variable."
+(defun cycle-todostates-backwards ()
+  "Cycle the TODO groups given by the `todogroups` variable forward."
   (interactive)
-  (next-state
-   prioritygroups-state prioritygroups
-   (if nxt-state
-       (let ((string-out `(format "PRIORITY>=%s&PRIORITY<=%s" ,@prioritygroups-state)))
-         (setq state-priority (eval string-out)))
-     (setq state-priority nil))))
+  (next-state todogroups-state todogroups -))
+
+(defun cycle-prioritystates-forwards ()
+  "Cycle the PRIORITY groups given by the `todogroups` variable forward."
+  (interactive)
+  (next-state prioritygroups-state prioritygroups +))
+
+(defun cycle-prioritystates-backwards ()
+  "Cycle the PRIORITY groups given by the `todogroups` variable forward."
+  (interactive)
+  (next-state prioritygroups-state prioritygroups -))
 
 ;; -- Calendar Functions
-(defun calendar-isopen ()
-  "True if calendar is showing"
-  (member "*Calendar*"
-          (--map (buffer-name (window-buffer it)) (window-list))))
-
 (defmacro markdate (abs face)
+  "Takes an ABS date and highlight it on the calendar with FACE."
   `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
 
 (defun update-calendar ()
   "Show and update the calendar to show the left, right, and middle flanks."
-  (let ((cb (current-buffer)))
-    (unless (calendar-isopen)
-      (calendar))
-    ;; (get-buffer-window cb)
-    (mode6 t)
-    (calendar-unmark)
+  (unless (member "*Calendar*"
+                  (--map (buffer-name (window-buffer it)) (window-list)))
+    ;; if calendar not open
+    (calendar))
+  (mode7 t)
+  (calendar-unmark)
+  (if day--frommidpoint-select
+      ;; TODO: Full left or Full Right
+      (message "fixme")
+    ;; Normal Flanking Range
     (dolist (absdate (number-sequence day--leftflank day--rightflank))
       (cond
        ((eq absdate day--midpoint) (markdate day--midpoint midday-marker))
        (t (markdate absdate range-marker))))))
 
-(defun update-all (&optional silent)
-  "Update the datestring and show on calendar."
-  (update-datestring)
-  (if (not silent) (update-calendar)))
-
-
-(define-minor-mode mode6
+(define-minor-mode mode7
   "Test"
   :init-value nil
   :lighter " scope"
@@ -247,8 +237,11 @@ Reset the `day--frommidpoint-select` to nil."
     ([M-right] . day-upperbound-forwards)
     ([C-M-left] . day-frommidpoint-leftwards)
     ([C-M-right] . day-frommidpoint-rightwards)
-    ([down] . reset-values)
-    ([return] . mode6)))
+    ([C-up] . cycle-todostates-forwards)
+    ([C-down] . cycle-todostates-backwards)
+    ([M-up] . cycle-prioritystates-forwards)
+    ([M-down] . cycle-prioritystates-backwards)
+    ([down] . initialise)))
 
 ;; -- Faces --
 (defface marker-range
