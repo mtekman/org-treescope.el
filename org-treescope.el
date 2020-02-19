@@ -122,6 +122,9 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
   (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ">=")))
 
 ;; -- Update method --
+(defvar org-treescope--todogroups-state nil  "Current state of TODO custom group.")
+(defvar org-treescope--prioritygroups-state nil  "Current state of GROUP custom group.")
+
 (defun org-treescope--update-datestring ()
   "Update the date string based on current state."
   ;; For some reason org-treescope--shift-ranges does not parse it unless I put it here
@@ -155,13 +158,10 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
     (unless silent (org-treescope--update-calendar))
     (let* ((slist `(,date-string ,todo-string ,priority-string))
            (mlist (--filter (if it it) slist))
-           (formt (mapconcat 'identity mlist "&")))
+           (formt (mapconcat 'identity mlist "&"))) ;; TODO: Become a + for priority
       (message formt))))
 
 ;; --- Todos and Priorities ---
-(defvar org-treescope--todogroups-state nil  "Current state of TODO custom group.")
-(defvar org-treescope--prioritygroups-state nil  "Current state of GROUP custom group.")
-
 (defcustom org-treescope--todogroups
   '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING"))
   "List of TODO groups to show in buffer.  A value of nil shows all."
