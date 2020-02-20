@@ -228,22 +228,30 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
 
 (defun org-treescope--update-calendar ()
   "Show and update the calendar to show the left, right, and middle flanks."
-  (unless (member "*Calendar*"
-                  (--map (buffer-name (window-buffer it)) (window-list)))
-    ;; if calendar not open
+  ;; if calendar not open
+  (unless
+      (member "*Calendar*"
+              (--map (buffer-name (window-buffer it)) (window-list)))
     (calendar))
-  (org-treescope-mode7 t)
+  (org-treescope-mode8 t)
   (calendar-unmark)
-  (if org-treescope--day--frommidpoint-select
-      ;; TODO: Full left or Full Right
-      (message "fixme")
-    ;; Normal Flanking Range
-    (dolist (absdate (number-sequence org-treescope--day--leftflank org-treescope--day--rightflank))
-      (cond
-       ((eq absdate org-treescope--day--midpoint) (org-treescope--markdate org-treescope--day--midpoint org-treescope-midday-marker))
-       (t (org-treescope--markdate absdate org-treescope-range-marker))))))
+  (let ((sel org-treescope--day--frommidpoint-select)
+        (mid org-treescope--day--midpoint)
+        (lfl org-treescope--day--leftflank)
+        (rfl org-treescope--day--rightflank))
+    (if sel
+        ;; If a flank, redefine the flanking limits
+        (cond ((string= sel ">=")
+               (setq rfl (calendar-absolute-from-gregorian (org-treescope--last-of-nextmonth))
+                     lfl mid))
+              ((string= sel "<=")
+               (setq lfl (calendar-absolute-from-gregorian (org-treescope--first-of-lastmonth))
+                     rfl mid))))
+    (dolist (absdate (number-sequence lfl rfl))
+      (cond ((eq absdate mid) (org-treescope--markdate mid org-treescope-midday-marker))
+            (t (org-treescope--markdate absdate org-treescope-range-marker))))))
 
-(define-minor-mode org-treescope-mode7
+(define-minor-mode org-treescope-mode8
   "Test"
   :init-value nil
   :lighter " scope"
