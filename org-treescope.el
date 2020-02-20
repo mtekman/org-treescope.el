@@ -85,6 +85,16 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
   (interactive)
   (org-treescope--shift-ranges - org-treescope-day-lowerbound-backwards org-treescope-day-upperbound-backwards))
 
+(defun org-treescope-day-shiftrange-backwards-week (&optional updatenow)
+  "Shift entire range back by a week and update midpoint.  Redraw if UPDATENOW."
+  (interactive)
+  (org-treescope-day-shiftrange-backwards 7 updatenow))
+
+(defun org-treescope-day-shiftrange-forwards-week (&optional updatenow)
+  "Shift entire range forwards by a week and update midpoint.  Redraw if UPDATENOW."
+  (interactive)
+  (org-treescope-day-shiftrange-forwards 7 updatenow))
+
 (defun org-treescope-day-shiftrange-forwards (&optional ndays updatenow)
   "Shift entire range forwards by NDAYS and update midpoint.  Redraw if UPDATENOW."
   (interactive)
@@ -258,6 +268,8 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
   :keymap
   '(([left] . org-treescope-day-shiftrange-backwards)
     ([right] . org-treescope-day-shiftrange-forwards)
+    ([up] . org-treescope-day-shiftrange-backwards-week)
+    ([down] . org-treescope-day-shiftrange-forwards-week)
     ([C-left] . org-treescope-day-lowerbound-backwards)
     ([C-right] . org-treescope-day-lowerbound-forwards)
     ([M-left] . org-treescope-day-upperbound-backwards)
