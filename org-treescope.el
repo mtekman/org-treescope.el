@@ -206,6 +206,26 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
   "Takes an ABS date and highlight it on the calendar with FACE."
   `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
 
+(defun org-treescope--first-of-lastmonth (&optional date)
+  "Grab the first day of last month, given by DATE."
+  (let* ((tod (or date (calendar-current-date)))
+         (mont (calendar-extract-month tod))
+         (year (calendar-extract-year tod))
+         (newm (- mont 1)))
+    (if (> newm 0)
+        (list newm 1 year)
+      (list 12 1 (- year 1)))))
+
+(defun org-treescope--last-of-nextmonth (&optional date)
+  "Grab the last day of next month, given by DATE."
+  (let* ((tod (or date (calendar-current-date)))
+         (mont (calendar-extract-month tod))
+         (year (calendar-extract-year tod))
+         (newm (+ mont 1)))
+    (if (> newm 12)
+        (list 1 31 (+ year 1))
+      (list newm (calendar-last-day-of-month newm year) year))))
+
 (defun org-treescope--update-calendar ()
   "Show and update the calendar to show the left, right, and middle flanks."
   (unless (member "*Calendar*"
