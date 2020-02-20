@@ -57,7 +57,7 @@
 ;; -- Date Macros
 (defmacro org-treescope--defaults-and-updates (&rest innercode)
   "Set default ndays to 1 and updatenow to true, run INNERCODE, and then update-now."
-  `(let ((ndays (or 1 ndays))
+  `(let ((ndays (or ndays 1))
          (updatenow (not (or nil updatenow))))
      (progn ,@innercode
             (org-treescope--sensible-values))
@@ -280,7 +280,7 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
     ([C-down] . org-treescope-cycle-todostates-backwards)
     ([M-up] . org-treescope-cycle-prioritystates-forwards)
     ([M-down] . org-treescope-cycle-prioritystates-backwards)
-    ([down] . org-treescope-initialise-reset)))
+    ([r] . org-treescope-initialise-reset)))
 
 ;; -- Faces --
 (defface org-treescope-marker-range
