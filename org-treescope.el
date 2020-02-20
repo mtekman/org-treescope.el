@@ -57,8 +57,9 @@
 ;; -- Date Macros
 (defmacro org-treescope--defaults-and-updates (&rest innercode)
   "Set default ndays to 1 and updatenow to true, run INNERCODE, and then update-now."
-  `(let ((ndays (or ndays 1))
-         (updatenow (not (or nil updatenow))))
+  `(let ((ndays (if (boundp 'ndays) ndays 1))
+         ;; if bound, invert it, otherwise assume true
+         (updatenow (if (boundp 'updatenow) (not updatenow) t)))
      (progn ,@innercode
             (org-treescope--sensible-values))
      (if updatenow (org-treescope--update-all))))
