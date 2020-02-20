@@ -69,8 +69,7 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
   `(org-treescope--defaults-and-updates
      (,lowerb ndays nil)
      (,upperb ndays nil)
-     (setq org-treescope--day--midpoint (,direction org-treescope--day--midpoint ndays))
-     (setq org-treescope--day--frommidpoint-select nil)))
+     (setq org-treescope--day--midpoint (,direction org-treescope--day--midpoint ndays))))
 
 (defmacro org-treescope--shift-flanks (day-flank positive)
   "Shift either the DAY-FLANK (left or right) flank in a POSITIVE or negative direction."
@@ -154,8 +153,8 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
                                 org-treescope--todogroups-state "\\|")))
                (format "TODO={%s}" string-fmt))))
         (date-string (org-treescope--update-datestring)))
-    (setq org-treescope--day--frommidpoint-select nil)
     (unless silent (org-treescope--update-calendar))
+    (setq org-treescope--day--frommidpoint-select nil)
     (let* ((slist `(,date-string ,todo-string ,priority-string))
            (mlist (--filter (if it it) slist))
            (formt (mapconcat 'identity mlist "&"))) ;; TODO: Become a + for priority
