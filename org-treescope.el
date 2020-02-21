@@ -314,3 +314,28 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
 
 (provide 'org-treescope)
 ;;; org-treescope.el ends here
+
+
+;; Attempt to macrofy interactive functions, does not save lines
+
+;; (defmacro org-treescope-macro-daybound (islow isfwd)
+;;   "Make interactive functions to move individual flanks, with ISLOW and ISFWD."
+;;   (let ((prefix "org-treescope")
+;;         (boundtype (if islow "lowerbound" "upperbound"))
+;;         (direction (if isfwd "forwards" "backwards"))
+;;         (funcdirec (if isfwd "+" "-"))
+;;         (flank (if isfwd "leftflank" "rightflank")))
+;;     (let ((funcname (intern (format "%s-day-%s-%s" prefix boundtype direction)))
+;;           (funcdocs (format "Move %s by NDAYS %s.  Redraw if UPDATENOW." flank direction))
+;;           (funcflnk (intern (format "%s--shift-flanks" prefix)))
+;;           (funcbody (intern (format "%s--day--%s" prefix flank)))
+;;           (funcdirc (intern funcdirec)))
+;;       `(defun ,funcname (&optional ndays updatenow)
+;;          ,funcdocs
+;;          (interactive)
+;;          (,funcflnk ,funcbody ,funcdirc)))))
+
+;; (org-treescope-macro-daybound t t) ;; lowerbound forwards
+;; (org-treescope-macro-daybound t nil) ;; lowerbound backwards
+;; (org-treescope-macro-daybound nil t) ;; upperbound forwards
+;; (org-treescope-macro-daybound nil nil) ;; upperbound backwards
