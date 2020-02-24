@@ -146,6 +146,7 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
 (defun org-treescope-day-shiftrange-forwards-week (&optional silent)
   "Shift entire range forwards by a week and update midpoint.  Don't update if SILENT."
   (interactive)
+  ;; FIXME: work out why the midpoint jumps to end.
   (org-treescope-day-shiftrange-forwards 7 silent))
 
 (defun org-treescope-day-shiftrange-forwards (&optional ndays silent)
@@ -311,6 +312,8 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
     (dolist (absdate (number-sequence lfl rfl))
       (let ((visiblep (<= folm absdate lonm))
             (middlep (eq absdate mid)))
+        ;; FIXME - work out when to change the calendar when midpoint not visible
+        ;;         using `calendar-forward-day'.
         (if visiblep
             (if middlep
                 (org-treescope--markdate mid org-treescope-midday-marker)
