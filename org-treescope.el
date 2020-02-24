@@ -109,21 +109,20 @@
 
 ;; -- Date Macros
 (defmacro org-treescope--defaults-and-updates (&rest innercode)
-  "Set default ndays to 1 and updatenow to true, run INNERCODE, and then update-now."
-  `(let ((ndays (if (boundp 'ndays) ndays 1))
-         ;; if bound, invert it, otherwise assume true
-         (updatenow (if (boundp 'updatenow) (not updatenow) t)))
-     (progn ,@innercode
-            (org-treescope--sensible-values))
-     (if updatenow (org-treescope--update-all))))
+  "Set default NDAYS to 1 and silent to true, run INNERCODE, and then update-now."
+  `(let ((ndays (if ndays ndays 1)))
+     ,@innercode
+     (unless silent
+       (org-treescope--sensible-values)
+       (org-treescope--update-all))))
 
 (defmacro org-treescope--shift-ranges (direction lowerb upperb)
   "Call the LOWERB and UPPERB (low/up bounds) in DIRECTION.
 Reset the `org-treescope--day--frommidpoint-select` to nil."
   `(org-treescope--defaults-and-updates
-     (,lowerb ndays nil)
-     (,upperb ndays nil)
-     (setq org-treescope--day--midpoint (,direction org-treescope--day--midpoint ndays))))
+     (,lowerb ndays t)
+     (setq org-treescope--day--midpoint (,direction org-treescope--day--midpoint ndays))
+     (,upperb ndays t)))
 
 (defmacro org-treescope--shift-flanks (day-flank positive)
   "Shift either the DAY-FLANK (left or right) flank in a POSITIVE or negative direction."
@@ -293,27 +292,29 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
 (defun org-treescope--update-calendar ()
   "Show and update the calendar to show the left, right, and middle flanks."
   ;; if calendar not open
-  (unless
-      (member "*Calendar*"
-              (--map (buffer-name (window-buffer it)) (window-list)))
+  (unless (member "*Calendar*"
+                  (--map (buffer-name (window-buffer it)) (window-list)))
     (calendar))
   (org-treescope-mode8 t)
   (calendar-unmark)
   (let ((sel org-treescope--day--frommidpoint-select)
         (mid org-treescope--day--midpoint)
         (lfl org-treescope--day--leftflank)
-        (rfl org-treescope--day--rightflank))
+        (rfl org-treescope--day--rightflank)
+        (folm (calendar-absolute-from-gregorian (org-treescope--first-of-lastmonth)))
+        (lonm (calendar-absolute-from-gregorian (org-treescope--last-of-nextmonth))))
     (if sel
         ;; If a flank, redefine the flanking limits
-        (cond ((string= sel ">=")
-               (setq rfl (calendar-absolute-from-gregorian (org-treescope--last-of-nextmonth))
-                     lfl mid))
-              ((string= sel "<=")
-               (setq lfl (calendar-absolute-from-gregorian (org-treescope--first-of-lastmonth))
-                     rfl mid))))
+        (cond ((string= sel ">=") (setq rfl lonm lfl mid))
+              ((string= sel "<=") (setq lfl folm rfl mid))))
+    ;; Now colour the defined range.
     (dolist (absdate (number-sequence lfl rfl))
-      (cond ((eq absdate mid) (org-treescope--markdate mid org-treescope-midday-marker))
-            (t (org-treescope--markdate absdate org-treescope-range-marker))))))
+      (let ((visiblep (<= folm absdate lonm))
+            (middlep (eq absdate mid)))
+        (if visiblep
+            (if middlep
+                (org-treescope--markdate mid org-treescope-midday-marker)
+              (org-treescope--markdate absdate org-treescope-range-marker)))))))
 
 
 (provide 'org-treescope)
