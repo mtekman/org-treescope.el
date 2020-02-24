@@ -20,6 +20,59 @@
 ;;         idea how to bound multiples
 (require 'calendar)
 
+
+(define-minor-mode org-treescope-mode8
+  "Test"
+  :init-value nil
+  :lighter " scope"
+  :keymap
+  '(([left] . org-treescope-day-shiftrange-backwards)
+    ([right] . org-treescope-day-shiftrange-forwards)
+    ([up] . org-treescope-day-shiftrange-backwards-week)
+    ([down] . org-treescope-day-shiftrange-forwards-week)
+    ([C-left] . org-treescope-day-lowerbound-backwards)
+    ([C-right] . org-treescope-day-lowerbound-forwards)
+    ([M-left] . org-treescope-day-upperbound-backwards)
+    ([M-right] . org-treescope-day-upperbound-forwards)
+    ([C-M-left] . org-treescope-day-frommidpoint-leftwards)
+    ([C-M-right] . org-treescope-day-frommidpoint-rightwards)
+    ([C-up] . org-treescope-cycle-todostates-forwards)
+    ([C-down] . org-treescope-cycle-todostates-backwards)
+    ([M-up] . org-treescope-cycle-prioritystates-forwards)
+    ([M-down] . org-treescope-cycle-prioritystates-backwards)
+    ((kbd "r") . org-treescope-initialise-reset)))
+
+;; -- Faces --
+(defface org-treescope-marker-range
+  '((((class color) (background light))
+     :background "darkblue")
+    (((class color) (background dark))
+     :background "darkblue")
+    (t :inverse-video t))
+  "Face for showing the range markers."
+  :group 'treescope-faces)
+
+(defface org-treescope-marker-midday
+  '((((class color) (background light))
+     :background "green")
+    (((class color) (background dark))
+     :background "green")
+    (t :inverse-video t))
+  "Face for showing the middle marker."
+  :group 'treescope-faces)
+
+(defcustom org-treescope-range-marker 'org-treescope-marker-range
+  "How to highlight all days covered by the ranges in the calendar."
+  :type '(choice (string :tag "Single character string") face)
+  :group 'treescope)
+
+(defcustom org-treescope-midday-marker 'org-treescope-marker-midday
+  "How to highlight all days covered by the ranges in the calendar."
+  :type '(choice (string :tag "Single character string") face)
+  :group 'treescope)
+
+
+
 ;; -- variables
 (defvar org-treescope--day--leftflank nil)
 (defvar org-treescope--day--rightflank nil)
@@ -262,55 +315,6 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
       (cond ((eq absdate mid) (org-treescope--markdate mid org-treescope-midday-marker))
             (t (org-treescope--markdate absdate org-treescope-range-marker))))))
 
-(define-minor-mode org-treescope-mode8
-  "Test"
-  :init-value nil
-  :lighter " scope"
-  :keymap
-  '(([left] . org-treescope-day-shiftrange-backwards)
-    ([right] . org-treescope-day-shiftrange-forwards)
-    ([up] . org-treescope-day-shiftrange-backwards-week)
-    ([down] . org-treescope-day-shiftrange-forwards-week)
-    ([C-left] . org-treescope-day-lowerbound-backwards)
-    ([C-right] . org-treescope-day-lowerbound-forwards)
-    ([M-left] . org-treescope-day-upperbound-backwards)
-    ([M-right] . org-treescope-day-upperbound-forwards)
-    ([C-M-left] . org-treescope-day-frommidpoint-leftwards)
-    ([C-M-right] . org-treescope-day-frommidpoint-rightwards)
-    ([C-up] . org-treescope-cycle-todostates-forwards)
-    ([C-down] . org-treescope-cycle-todostates-backwards)
-    ([M-up] . org-treescope-cycle-prioritystates-forwards)
-    ([M-down] . org-treescope-cycle-prioritystates-backwards)
-    ([r] . org-treescope-initialise-reset)))
-
-;; -- Faces --
-(defface org-treescope-marker-range
-  '((((class color) (background light))
-     :background "darkblue")
-    (((class color) (background dark))
-     :background "darkblue")
-    (t :inverse-video t))
-  "Face for showing the range markers."
-  :group 'treescope-faces)
-
-(defface org-treescope-marker-midday
-  '((((class color) (background light))
-     :background "green")
-    (((class color) (background dark))
-     :background "green")
-    (t :inverse-video t))
-  "Face for showing the middle marker."
-  :group 'treescope-faces)
-
-(defcustom org-treescope-range-marker 'org-treescope-marker-range
-  "How to highlight all days covered by the ranges in the calendar."
-  :type '(choice (string :tag "Single character string") face)
-  :group 'treescope)
-
-(defcustom org-treescope-midday-marker 'org-treescope-marker-midday
-  "How to highlight all days covered by the ranges in the calendar."
-  :type '(choice (string :tag "Single character string") face)
-  :group 'treescope)
 
 (provide 'org-treescope)
 ;;; org-treescope.el ends here
