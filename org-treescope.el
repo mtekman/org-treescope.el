@@ -134,53 +134,53 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
          (setq org-treescope--day--midpoint ,day-flank))))
 
 ;; -- Date Methods
-(defun org-treescope-day-shiftrange-backwards (&optional ndays updatenow)
-  "Shift entire range back by NDAYS and update midpoint.  Redraw if UPDATENOW."
+(defun org-treescope-day-shiftrange-backwards (&optional ndays silent)
+  "Shift entire range back by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-ranges - org-treescope-day-lowerbound-backwards org-treescope-day-upperbound-backwards))
 
-(defun org-treescope-day-shiftrange-backwards-week (&optional updatenow)
-  "Shift entire range back by a week and update midpoint.  Redraw if UPDATENOW."
+(defun org-treescope-day-shiftrange-backwards-week (&optional silent)
+  "Shift entire range back by a week and update midpoint.  Don't update if SILENT."
   (interactive)
-  (org-treescope-day-shiftrange-backwards 7 updatenow))
+  (org-treescope-day-shiftrange-backwards 7 silent))
 
-(defun org-treescope-day-shiftrange-forwards-week (&optional updatenow)
-  "Shift entire range forwards by a week and update midpoint.  Redraw if UPDATENOW."
+(defun org-treescope-day-shiftrange-forwards-week (&optional silent)
+  "Shift entire range forwards by a week and update midpoint.  Don't update if SILENT."
   (interactive)
-  (org-treescope-day-shiftrange-forwards 7 updatenow))
+  (org-treescope-day-shiftrange-forwards 7 silent))
 
-(defun org-treescope-day-shiftrange-forwards (&optional ndays updatenow)
-  "Shift entire range forwards by NDAYS and update midpoint.  Redraw if UPDATENOW."
+(defun org-treescope-day-shiftrange-forwards (&optional ndays silent)
+  "Shift entire range forwards by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-ranges + org-treescope-day-lowerbound-forwards org-treescope-day-upperbound-forwards))
 
-(defun org-treescope-day-lowerbound-forwards (&optional ndays updatenow)
-  "Move left-flank by NDAYS forwards.  Redraw if UPDATENOW."
+(defun org-treescope-day-lowerbound-forwards (&optional ndays silent)
+  "Move left-flank by NDAYS forwards.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-flanks org-treescope--day--leftflank +))
 
-(defun org-treescope-day-lowerbound-backwards (&optional ndays updatenow)
-  "Move left-flank by NDAYS backwards.  Redraw if UPDATENOW."
+(defun org-treescope-day-lowerbound-backwards (&optional ndays silent)
+  "Move left-flank by NDAYS backwards.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-flanks org-treescope--day--leftflank -))
 
-(defun org-treescope-day-upperbound-forwards (&optional ndays updatenow)
-  "Move right-flank by NDAYS forwards.  Redraw if UPDATENOW."
+(defun org-treescope-day-upperbound-forwards (&optional ndays silent)
+  "Move right-flank by NDAYS forwards.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-flanks org-treescope--day--rightflank +))
 
-(defun org-treescope-day-upperbound-backwards (&optional ndays updatenow)
-  "Move right-flank by NDAYS backwards.  Redraw if UPDATENOW."
+(defun org-treescope-day-upperbound-backwards (&optional ndays silent)
+  "Move right-flank by NDAYS backwards.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-flanks org-treescope--day--rightflank -))
 
-(defun org-treescope-day-frommidpoint-leftwards (&optional updatenow)
-  "Ignore left and right flanks, and select all dates before midpoint.  Redraw if UPDATENOW."
+(defun org-treescope-day-frommidpoint-leftwards (&optional silent)
+  "Ignore left and right flanks, and select all dates before midpoint.  Don't update if SILENT."
   (interactive)
   (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select "<=")))
 
-(defun org-treescope-day-frommidpoint-rightwards (&optional updatenow)
-  "Ignore left and right flanks, and select all dates after midpoint.  Redraw if UPDATENOW."
+(defun org-treescope-day-frommidpoint-rightwards (&optional silent)
+  "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
   (interactive)
   (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ">=")))
 
@@ -330,11 +330,11 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
 ;;         (funcdirec (if isfwd "+" "-"))
 ;;         (flank (if isfwd "leftflank" "rightflank")))
 ;;     (let ((funcname (intern (format "%s-day-%s-%s" prefix boundtype direction)))
-;;           (funcdocs (format "Move %s by NDAYS %s.  Redraw if UPDATENOW." flank direction))
+;;           (funcdocs (format "Move %s by NDAYS %s.  Don't update if SILENT." flank direction))
 ;;           (funcflnk (intern (format "%s--shift-flanks" prefix)))
 ;;           (funcbody (intern (format "%s--day--%s" prefix flank)))
 ;;           (funcdirc (intern funcdirec)))
-;;       `(defun ,funcname (&optional ndays updatenow)
+;;       `(defun ,funcname (&optional ndays silent)
 ;;          ,funcdocs
 ;;          (interactive)
 ;;          (,funcflnk ,funcbody ,funcdirc)))))
