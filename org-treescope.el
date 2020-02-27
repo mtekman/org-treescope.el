@@ -83,16 +83,26 @@
 ;; -- variables
 (defvar newlib--day--leftflank nil)
 (defvar newlib--day--rightflank nil)
-(defvar newlib--day--midpoint nil)
 (defvar newlib--day--frommidpoint-select nil "Possible values are `<=` and `>=`.")
 
 ;; -- Init --
+(defun newlib--getmidpoint ()
+  "Grabs the date under cursor (if calendar active), or returns the current date."
+  (condition-case err
+      (calendar-cursor-to-date nil nil)
+    (error
+     (ignore err)
+     (calendar-current-date))))
+
+(defsubst newlib--getmidpoint-abs ()
+  "inline substitution to retrieve the current mid point in epochs."
+  (calendar-absolute-from-gregorian (newlib--getmidpoint)))
+
 (defun newlib-initialise-reset ()
   "Reset all variables and center around current date."
   (interactive)
   (setq newlib--day--leftflank nil
         newlib--day--rightflank nil
-        newlib--day--midpoint nil
         newlib--day--frommidpoint-select nil)
   (newlib--sensible-values)
   (newlib--update-all))
