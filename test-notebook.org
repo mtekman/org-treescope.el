@@ -1,0 +1,16 @@
+
+
+* Test1
+** TODO No date or priority
+** DOING No date or priority
+* Test2
+** TODO Scheduled for 2020-02-27
+   SCHEDULED: <2020-02-27 Do>
+** TODO Scheduled for 2020-03-03 and deadline 2020-03-07
+   DEADLINE: <2020-03-07 Sa> SCHEDULED: <2020-03-03 Di>
+** DONE Finished on 2020-02-20
+   CLOSED: [2020-02-20 Do 13:37]
+** TODO [#A] Scheduled for 2020-02-27 with high priority
+   SCHEDULED: <2020-02-27 Do>
+** TODO [#K] Scheduled for 2020-02-27 with low priority
+   SCHEDULED: <2020-02-27 Do>

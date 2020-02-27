@@ -23,7 +23,7 @@
 
 ;; TODO:
 ;;  * Cycleable user defined modes
-;;  * Default time ranges to +-123wm
+;;  * Default time ranges to +-123wm, although how to describe that?
 ;;  * Second mode for precisely controlled dates.
 
 (define-minor-mode org-treescope-mode8
