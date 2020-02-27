@@ -21,6 +21,11 @@
 (require 'calendar)
 
 
+;; TODO:
+;;  * Cycleable user defined modes
+;;  * Default time ranges to +-123wm
+;;  * Second mode for precisely controlled dates.
+
 (define-minor-mode org-treescope-mode8
   "Test"
   :init-value nil
@@ -40,7 +45,8 @@
     ([C-down] . org-treescope-cycle-todostates-backwards)
     ([M-up] . org-treescope-cycle-prioritystates-forwards)
     ([M-down] . org-treescope-cycle-prioritystates-backwards)
-    ((kbd "r") . org-treescope-initialise-reset)))
+    ((kbd "r") . org-treescope-initialise-reset)
+    ((kbd "t") . org-treescope-cycletimemode)))
 
 ;; -- Faces --
 (defface org-treescope-marker-range
@@ -187,22 +193,43 @@ Reset the `org-treescope--day--frommidpoint-select` to nil."
 ;; -- Update method --
 (defvar org-treescope--todogroups-state nil  "Current state of TODO custom group.")
 (defvar org-treescope--prioritygroups-state nil  "Current state of GROUP custom group.")
+(defvar org-treescope--timemode "TIMESTAMP"
+  "Current mode to select on time. Valid values are TIMESTAMP, SCHEDULED, DEADLINE, and nil,
+where nil means don't select for time at all.")
+
+(defun org-treescope-cycletimemode ()
+  "Cycle through the time mode selectors."
+  (let* ((validmodes '(nil "TIMESTAMP" "SCHEDULED" "DEADLINE"))
+         (currindex (cl-position org-treescope--timemode validmodes :test 'equal))
+         (nextindex (mod (1+ currindex) 4))
+         (nextmode (nth nextindex validmodes)))
+    (setq org-treescope--timemode nextmode)))
 
 (defun org-treescope--update-datestring ()
   "Update the date string based on current state."
   ;; For some reason org-treescope--shift-ranges does not parse it unless I put it here
-  (let ((format-lambda '(lambda (x) (format "%s" x))))
-    (if org-treescope--day--frommidpoint-select
-        (let* ((gregdate-mid (calendar-gregorian-from-absolute org-treescope--day--midpoint))
-               (strdate-mid (mapconcat format-lambda (reverse gregdate-mid) "-")))
-          ;; e.g. <=<2020-12-02> or >=<2019-01-31>
-          (format "TIMESTAMP%s<%s>" org-treescope--day--frommidpoint-select strdate-mid))
-      ;; Otherwise set a date range.
-      (let ((gregdate-left  (calendar-gregorian-from-absolute org-treescope--day--leftflank))
-            (gregdate-right (calendar-gregorian-from-absolute org-treescope--day--rightflank)))
-        (let ((strdate-left (mapconcat format-lambda (reverse gregdate-left) "-"))
-              (strdate-right (mapconcat format-lambda (reverse gregdate-right) "-")))
-          (format "TIMESTAMP>=<%s>&TIMESTAMP<=<%s>" strdate-left strdate-right))))))
+  (if (not org-treescope--timemode)
+      ;; FIXME: The & seperator is at the beginning when this is nil
+      (format "")
+    (let ((format-lambda '(lambda (x) (format "%s" x))))
+      (if org-treescope--day--frommidpoint-select
+          (let* ((gregdate-mid (calendar-gregorian-from-absolute org-treescope--day--midpoint))
+                 (strdate-mid (mapconcat format-lambda (reverse gregdate-mid) "-")))
+            ;; e.g. <=<2020-12-02> or >=<2019-01-31>
+            (format "%s%s\"<%s>\""
+                    org-treescope--timemode
+                    org-treescope--day--frommidpoint-select
+                    strdate-mid))
+        ;; Otherwise set a date range.
+        (let ((gregdate-left  (calendar-gregorian-from-absolute org-treescope--day--leftflank))
+              (gregdate-right (calendar-gregorian-from-absolute org-treescope--day--rightflank)))
+          (let ((strdate-left (mapconcat format-lambda (reverse gregdate-left) "-"))
+                (strdate-right (mapconcat format-lambda (reverse gregdate-right) "-")))
+            (format "%s>=\"<%s>\"&%s<=\"<%s>\""
+                    org-treescope--timemode
+                    strdate-left
+                    org-treescope--timemode
+                    strdate-right)))))))
 
 (defun org-treescope--update-all (&optional silent)
   "Update the dates, todos, priorities and show on calendar if not SILENT."
