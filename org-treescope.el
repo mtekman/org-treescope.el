@@ -110,12 +110,9 @@
 (defun newlib--sensible-values ()
   "Check that all time flankers are initialised and at sensible defaults."
   ;; We deal with absolute dates, not gregorian.
-  (unless newlib--day--midpoint
-    (setq newlib--day--midpoint
-          (calendar-absolute-from-gregorian
-           (calendar-current-date))))
-  (unless newlib--day--leftflank (setq newlib--day--leftflank (- newlib--day--midpoint 3)))
-  (unless newlib--day--rightflank (setq newlib--day--rightflank (+ newlib--day--midpoint 3)))
+  (let ((mid (newlib--getmidpoint-abs)))
+    (unless newlib--day--leftflank (setq newlib--day--leftflank (- mid 3)))
+    (unless newlib--day--rightflank (setq newlib--day--rightflank (+ mid 3))))
   ;; -- check sensible values --
   (if (> newlib--day--leftflank newlib--day--rightflank)
       (setq newlib--day--rightflank (+ newlib--day--leftflank 1)))
@@ -142,11 +139,13 @@ Reset the `newlib--day--frommidpoint-select` to nil."
 
 (defmacro newlib--shift-flanks (day-flank positive)
   "Shift either the DAY-FLANK (left or right) flank in a POSITIVE or negative direction."
+  ;; Correctly drags the midpoint.
   `(newlib--defaults-and-updates
-     (setq ,day-flank (,positive ,day-flank ndays))
-     (if (or (< newlib--day--midpoint newlib--day--leftflank)
-             (> newlib--day--midpoint newlib--day--rightflank))
-         (setq newlib--day--midpoint ,day-flank))))
+    (let ((midpoint (newlib--getmidpoint-abs)))
+      (setq ,day-flank (,positive ,day-flank ndays))
+      (if (or (< midpoint newlib--day--leftflank)
+              (> midpoint newlib--day--rightflank))
+          (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute ,day-flank))))))
 
 ;; -- Date Methods
 (defun newlib-day-shiftrange-backwards (&optional ndays silent)
@@ -335,10 +334,11 @@ where nil means don't select for time at all.")
     (calendar))
   (newlib-mode8 t)
   (calendar-unmark)
-  (let ((sel newlib--day--frommidpoint-select)
-        (mid newlib--day--midpoint)
+  (let ((mid (newlib--getmidpoint-abs))
+        (sel newlib--day--frommidpoint-select)
         (lfl newlib--day--leftflank)
         (rfl newlib--day--rightflank)
+        ;; This might not be necessary if calendar now follows internal cursor
         (folm (calendar-absolute-from-gregorian (newlib--first-of-lastmonth)))
         (lonm (calendar-absolute-from-gregorian (newlib--last-of-nextmonth))))
     (if sel
