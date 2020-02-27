@@ -25,31 +25,32 @@
 ;;  * Cycleable user defined modes
 ;;  * Default time ranges to +-123wm, although how to describe that?
 ;;  * Second mode for precisely controlled dates.
+;;  * reset org-treescope → newlib
 
-(define-minor-mode org-treescope-mode8
+(define-minor-mode newlib-mode8
   "Test"
   :init-value nil
   :lighter " scope"
   :keymap
-  '(([left] . org-treescope-day-shiftrange-backwards)
-    ([right] . org-treescope-day-shiftrange-forwards)
-    ([up] . org-treescope-day-shiftrange-backwards-week)
-    ([down] . org-treescope-day-shiftrange-forwards-week)
-    ([C-left] . org-treescope-day-lowerbound-backwards)
-    ([C-right] . org-treescope-day-lowerbound-forwards)
-    ([M-left] . org-treescope-day-upperbound-backwards)
-    ([M-right] . org-treescope-day-upperbound-forwards)
-    ([C-M-left] . org-treescope-day-frommidpoint-leftwards)
-    ([C-M-right] . org-treescope-day-frommidpoint-rightwards)
-    ([C-up] . org-treescope-cycle-todostates-forwards)
-    ([C-down] . org-treescope-cycle-todostates-backwards)
-    ([M-up] . org-treescope-cycle-prioritystates-forwards)
-    ([M-down] . org-treescope-cycle-prioritystates-backwards)
-    ((kbd "r") . org-treescope-initialise-reset)
-    ((kbd "t") . org-treescope-cycletimemode)))
+  '(([left] . newlib-day-shiftrange-backwards)
+    ([right] . newlib-day-shiftrange-forwards)
+    ([up] . newlib-day-shiftrange-backwards-week)
+    ([down] . newlib-day-shiftrange-forwards-week)
+    ([C-left] . newlib-day-lowerbound-backwards)
+    ([C-right] . newlib-day-lowerbound-forwards)
+    ([M-left] . newlib-day-upperbound-backwards)
+    ([M-right] . newlib-day-upperbound-forwards)
+    ([C-M-left] . newlib-day-frommidpoint-leftwards)
+    ([C-M-right] . newlib-day-frommidpoint-rightwards)
+    ([C-up] . newlib-cycle-todostates-forwards)
+    ([C-down] . newlib-cycle-todostates-backwards)
+    ([M-up] . newlib-cycle-prioritystates-forwards)
+    ([M-down] . newlib-cycle-prioritystates-backwards)
+    ((kbd "r") . newlib-initialise-reset)
+    ((kbd "t") . newlib-cycletimemode)))
 
 ;; -- Faces --
-(defface org-treescope-marker-range
+(defface newlib-marker-range
   '((((class color) (background light))
      :background "darkblue")
     (((class color) (background dark))
@@ -58,7 +59,7 @@
   "Face for showing the range markers."
   :group 'treescope-faces)
 
-(defface org-treescope-marker-midday
+(defface newlib-marker-midday
   '((((class color) (background light))
      :background "green")
     (((class color) (background dark))
@@ -67,12 +68,12 @@
   "Face for showing the middle marker."
   :group 'treescope-faces)
 
-(defcustom org-treescope-range-marker 'org-treescope-marker-range
+(defcustom newlib-range-marker 'newlib-marker-range
   "How to highlight all days covered by the ranges in the calendar."
   :type '(choice (string :tag "Single character string") face)
   :group 'treescope)
 
-(defcustom org-treescope-midday-marker 'org-treescope-marker-midday
+(defcustom newlib-midday-marker 'newlib-marker-midday
   "How to highlight all days covered by the ranges in the calendar."
   :type '(choice (string :tag "Single character string") face)
   :group 'treescope)
@@ -80,224 +81,223 @@
 
 
 ;; -- variables
-(defvar org-treescope--day--leftflank nil)
-(defvar org-treescope--day--rightflank nil)
-(defvar org-treescope--day--midpoint nil)
-(defvar org-treescope--day--frommidpoint-select nil "Possible values are `<=` and `>=`.")
+(defvar newlib--day--leftflank nil)
+(defvar newlib--day--rightflank nil)
+(defvar newlib--day--midpoint nil)
+(defvar newlib--day--frommidpoint-select nil "Possible values are `<=` and `>=`.")
 
 ;; -- Init --
-(defun org-treescope-initialise-reset ()
+(defun newlib-initialise-reset ()
   "Reset all variables and center around current date."
   (interactive)
-  (setq org-treescope--day--leftflank nil
-        org-treescope--day--rightflank nil
-        org-treescope--day--midpoint nil
-        org-treescope--day--frommidpoint-select nil)
-  (org-treescope--sensible-values)
-  (org-treescope--update-all))
+  (setq newlib--day--leftflank nil
+        newlib--day--rightflank nil
+        newlib--day--midpoint nil
+        newlib--day--frommidpoint-select nil)
+  (newlib--sensible-values)
+  (newlib--update-all))
 
-(defun org-treescope--sensible-values ()
+(defun newlib--sensible-values ()
   "Check that all time flankers are initialised and at sensible defaults."
   ;; We deal with absolute dates, not gregorian.
-  (unless org-treescope--day--midpoint
-    (setq org-treescope--day--midpoint
+  (unless newlib--day--midpoint
+    (setq newlib--day--midpoint
           (calendar-absolute-from-gregorian
            (calendar-current-date))))
-  (unless org-treescope--day--leftflank (setq org-treescope--day--leftflank (- org-treescope--day--midpoint 3)))
-  (unless org-treescope--day--rightflank (setq org-treescope--day--rightflank (+ org-treescope--day--midpoint 3)))
+  (unless newlib--day--leftflank (setq newlib--day--leftflank (- newlib--day--midpoint 3)))
+  (unless newlib--day--rightflank (setq newlib--day--rightflank (+ newlib--day--midpoint 3)))
   ;; -- check sensible values --
-  (if (> org-treescope--day--leftflank org-treescope--day--rightflank)
-      (setq org-treescope--day--rightflank (+ org-treescope--day--leftflank 1)))
-  (if (< org-treescope--day--rightflank org-treescope--day--leftflank)
-      (setq org-treescope--day--leftflank (- org-treescope--day--rightflank 1))))
+  (if (> newlib--day--leftflank newlib--day--rightflank)
+      (setq newlib--day--rightflank (+ newlib--day--leftflank 1)))
+  (if (< newlib--day--rightflank newlib--day--leftflank)
+      (setq newlib--day--leftflank (- newlib--day--rightflank 1))))
   ;; TODO: Add clauses for what the midpoint is doing
 
 
 ;; -- Date Macros
-(defmacro org-treescope--defaults-and-updates (&rest innercode)
+(defmacro newlib--defaults-and-updates (&rest innercode)
   "Set default NDAYS to 1 and silent to true, run INNERCODE, and then update-now."
   `(let ((ndays (if ndays ndays 1)))
      ,@innercode
      (unless silent
-       (org-treescope--sensible-values)
-       (org-treescope--update-all))))
-
-(defmacro org-treescope--shift-ranges (direction lowerb upperb)
+       (newlib--sensible-values)
+       (newlib--update-all))))
+(defmacro newlib--shift-ranges (direction lowerb upperb)
   "Call the LOWERB and UPPERB (low/up bounds) in DIRECTION.
-Reset the `org-treescope--day--frommidpoint-select` to nil."
-  `(org-treescope--defaults-and-updates
-     (,lowerb ndays t)
-     (setq org-treescope--day--midpoint (,direction org-treescope--day--midpoint ndays))
-     (,upperb ndays t)))
+Reset the `newlib--day--frommidpoint-select` to nil."
+  `(newlib--defaults-and-updates
+    (,lowerb ndays t)
+    (calendar-forward-day (,direction ndays))
+    (,upperb ndays t)))
 
-(defmacro org-treescope--shift-flanks (day-flank positive)
+(defmacro newlib--shift-flanks (day-flank positive)
   "Shift either the DAY-FLANK (left or right) flank in a POSITIVE or negative direction."
-  `(org-treescope--defaults-and-updates
+  `(newlib--defaults-and-updates
      (setq ,day-flank (,positive ,day-flank ndays))
-     (if (or (< org-treescope--day--midpoint org-treescope--day--leftflank)
-             (> org-treescope--day--midpoint org-treescope--day--rightflank))
-         (setq org-treescope--day--midpoint ,day-flank))))
+     (if (or (< newlib--day--midpoint newlib--day--leftflank)
+             (> newlib--day--midpoint newlib--day--rightflank))
+         (setq newlib--day--midpoint ,day-flank))))
 
 ;; -- Date Methods
-(defun org-treescope-day-shiftrange-backwards (&optional ndays silent)
+(defun newlib-day-shiftrange-backwards (&optional ndays silent)
   "Shift entire range back by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
-  (org-treescope--shift-ranges - org-treescope-day-lowerbound-backwards org-treescope-day-upperbound-backwards))
+  (newlib--shift-ranges - newlib-day-lowerbound-backwards newlib-day-upperbound-backwards))
 
-(defun org-treescope-day-shiftrange-backwards-week (&optional silent)
+(defun newlib-day-shiftrange-backwards-week (&optional silent)
   "Shift entire range back by a week and update midpoint.  Don't update if SILENT."
   (interactive)
-  (org-treescope-day-shiftrange-backwards 7 silent))
+  (newlib-day-shiftrange-backwards 7 silent))
 
-(defun org-treescope-day-shiftrange-forwards-week (&optional silent)
+(defun newlib-day-shiftrange-forwards-week (&optional silent)
   "Shift entire range forwards by a week and update midpoint.  Don't update if SILENT."
   (interactive)
   ;; FIXME: work out why the midpoint jumps to end.
-  (org-treescope-day-shiftrange-forwards 7 silent))
+  (newlib-day-shiftrange-forwards 7 silent))
 
-(defun org-treescope-day-shiftrange-forwards (&optional ndays silent)
+(defun newlib-day-shiftrange-forwards (&optional ndays silent)
   "Shift entire range forwards by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
-  (org-treescope--shift-ranges + org-treescope-day-lowerbound-forwards org-treescope-day-upperbound-forwards))
+  (newlib--shift-ranges + newlib-day-lowerbound-forwards newlib-day-upperbound-forwards))
 
-(defun org-treescope-day-lowerbound-forwards (&optional ndays silent)
+(defun newlib-day-lowerbound-forwards (&optional ndays silent)
   "Move left-flank by NDAYS forwards.  Don't update if SILENT."
   (interactive)
-  (org-treescope--shift-flanks org-treescope--day--leftflank +))
+  (newlib--shift-flanks newlib--day--leftflank +))
 
-(defun org-treescope-day-lowerbound-backwards (&optional ndays silent)
+(defun newlib-day-lowerbound-backwards (&optional ndays silent)
   "Move left-flank by NDAYS backwards.  Don't update if SILENT."
   (interactive)
-  (org-treescope--shift-flanks org-treescope--day--leftflank -))
+  (newlib--shift-flanks newlib--day--leftflank -))
 
-(defun org-treescope-day-upperbound-forwards (&optional ndays silent)
+(defun newlib-day-upperbound-forwards (&optional ndays silent)
   "Move right-flank by NDAYS forwards.  Don't update if SILENT."
   (interactive)
-  (org-treescope--shift-flanks org-treescope--day--rightflank +))
+  (newlib--shift-flanks newlib--day--rightflank +))
 
-(defun org-treescope-day-upperbound-backwards (&optional ndays silent)
+(defun newlib-day-upperbound-backwards (&optional ndays silent)
   "Move right-flank by NDAYS backwards.  Don't update if SILENT."
   (interactive)
-  (org-treescope--shift-flanks org-treescope--day--rightflank -))
+  (newlib--shift-flanks newlib--day--rightflank -))
 
-(defun org-treescope-day-frommidpoint-leftwards (&optional silent)
+(defun newlib-day-frommidpoint-leftwards (&optional silent)
   "Ignore left and right flanks, and select all dates before midpoint.  Don't update if SILENT."
   (interactive)
-  (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select "<=")))
+  (newlib--defaults-and-updates (setq newlib--day--frommidpoint-select "<=")))
 
-(defun org-treescope-day-frommidpoint-rightwards (&optional silent)
+(defun newlib-day-frommidpoint-rightwards (&optional silent)
   "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
   (interactive)
-  (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ">=")))
+  (newlib--defaults-and-updates (setq newlib--day--frommidpoint-select ">=")))
 
 ;; -- Update method --
-(defvar org-treescope--todogroups-state nil  "Current state of TODO custom group.")
-(defvar org-treescope--prioritygroups-state nil  "Current state of GROUP custom group.")
-(defvar org-treescope--timemode "TIMESTAMP"
+(defvar newlib--todogroups-state nil  "Current state of TODO custom group.")
+(defvar newlib--prioritygroups-state nil  "Current state of GROUP custom group.")
+(defvar newlib--timemode "TIMESTAMP"
   "Current mode to select on time. Valid values are TIMESTAMP, SCHEDULED, DEADLINE, and nil,
 where nil means don't select for time at all.")
 
-(defun org-treescope-cycletimemode ()
+(defun newlib-cycletimemode ()
   "Cycle through the time mode selectors."
   (let* ((validmodes '(nil "TIMESTAMP" "SCHEDULED" "DEADLINE"))
-         (currindex (cl-position org-treescope--timemode validmodes :test 'equal))
+         (currindex (cl-position newlib--timemode validmodes :test 'equal))
          (nextindex (mod (1+ currindex) 4))
          (nextmode (nth nextindex validmodes)))
-    (setq org-treescope--timemode nextmode)))
+    (setq newlib--timemode nextmode)))
 
-(defun org-treescope--update-datestring ()
+(defun newlib--update-datestring ()
   "Update the date string based on current state."
-  ;; For some reason org-treescope--shift-ranges does not parse it unless I put it here
-  (if (not org-treescope--timemode)
+  ;; For some reason newlib--shift-ranges does not parse it unless I put it here
+  (if (not newlib--timemode)
       ;; FIXME: The & seperator is at the beginning when this is nil
       (format "")
     (let ((format-lambda '(lambda (x) (format "%s" x))))
-      (if org-treescope--day--frommidpoint-select
-          (let* ((gregdate-mid (calendar-gregorian-from-absolute org-treescope--day--midpoint))
+      (if newlib--day--frommidpoint-select
+          (let* ((gregdate-mid (calendar-gregorian-from-absolute newlib--day--midpoint))
                  (strdate-mid (mapconcat format-lambda (reverse gregdate-mid) "-")))
             ;; e.g. <=<2020-12-02> or >=<2019-01-31>
             (format "%s%s\"<%s>\""
-                    org-treescope--timemode
-                    org-treescope--day--frommidpoint-select
+                    newlib--timemode
+                    newlib--day--frommidpoint-select
                     strdate-mid))
         ;; Otherwise set a date range.
-        (let ((gregdate-left  (calendar-gregorian-from-absolute org-treescope--day--leftflank))
-              (gregdate-right (calendar-gregorian-from-absolute org-treescope--day--rightflank)))
+        (let ((gregdate-left  (calendar-gregorian-from-absolute newlib--day--leftflank))
+              (gregdate-right (calendar-gregorian-from-absolute newlib--day--rightflank)))
           (let ((strdate-left (mapconcat format-lambda (reverse gregdate-left) "-"))
                 (strdate-right (mapconcat format-lambda (reverse gregdate-right) "-")))
             (format "%s>=\"<%s>\"&%s<=\"<%s>\""
-                    org-treescope--timemode
+                    newlib--timemode
                     strdate-left
-                    org-treescope--timemode
+                    newlib--timemode
                     strdate-right)))))))
 
-(defun org-treescope--update-all (&optional silent)
+(defun newlib--update-all (&optional silent)
   "Update the dates, todos, priorities and show on calendar if not SILENT."
   (let ((priority-string
-         (if org-treescope--prioritygroups-state
+         (if newlib--prioritygroups-state
              (eval `(format "PRIORITY>=%s&PRIORITY<=%s"
-                            ,@org-treescope--prioritygroups-state))))
+                            ,@newlib--prioritygroups-state))))
         (todo-string
-         (if org-treescope--todogroups-state
+         (if newlib--todogroups-state
              (let* ((string-fmt
                      (mapconcat 'identity
-                                org-treescope--todogroups-state "\\|")))
+                                newlib--todogroups-state "\\|")))
                (format "TODO={%s}" string-fmt))))
-        (date-string (org-treescope--update-datestring)))
-    (unless silent (org-treescope--update-calendar))
-    (setq org-treescope--day--frommidpoint-select nil)
+        (date-string (newlib--update-datestring)))
+    (unless silent (newlib--update-calendar))
+    (setq newlib--day--frommidpoint-select nil)
     (let* ((slist `(,date-string ,todo-string ,priority-string))
            (mlist (--filter (if it it) slist))
            (formt (mapconcat 'identity mlist "&"))) ;; TODO: Become a + for priority
       (message formt))))
 
 ;; --- Todos and Priorities ---
-(defcustom org-treescope--todogroups
+(defcustom newlib--todogroups
   '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING"))
   "List of TODO groups to show in buffer.  A value of nil shows all."
   :type 'list
   :group 'treescope)
 
-(defcustom org-treescope--prioritygroups
+(defcustom newlib--prioritygroups
   '(nil (65 68) (65 70) (70 75))
   "List of PRIORITY ranges (lowest highest) to show in buffer.  A value of nil shows all."
   :type 'list
   :group 'treescope)
 
-(defmacro org-treescope--next-state (statecurrent statelist direction)
+(defmacro newlib--next-state (statecurrent statelist direction)
   "Set the next state in the STATELIST from the STATECURRENT, cycling in DIRECTION."
   `(let* ((now-index (or (cl-position ,statecurrent ,statelist :test 'equal) 0))
           (nxt-index (mod (,direction now-index 1) (length ,statelist)))
           (nxt-state (nth nxt-index ,statelist)))
      (setq ,statecurrent nxt-state)
-     (org-treescope--update-all t)))
+     (newlib--update-all t)))
 
-(defun org-treescope-cycle-todostates-forwards ()
-  "Cycle the TODO groups given by the `org-treescope--todogroups` variable forward."
+(defun newlib-cycle-todostates-forwards ()
+  "Cycle the TODO groups given by the `newlib--todogroups` variable forward."
   (interactive)
-  (org-treescope--next-state org-treescope--todogroups-state org-treescope--todogroups +))
+  (newlib--next-state newlib--todogroups-state newlib--todogroups +))
 
-(defun org-treescope-cycle-todostates-backwards ()
-  "Cycle the TODO groups given by the `org-treescope--todogroups` variable forward."
+(defun newlib-cycle-todostates-backwards ()
+  "Cycle the TODO groups given by the `newlib--todogroups` variable forward."
   (interactive)
-  (org-treescope--next-state org-treescope--todogroups-state org-treescope--todogroups -))
+  (newlib--next-state newlib--todogroups-state newlib--todogroups -))
 
-(defun org-treescope-cycle-prioritystates-forwards ()
-  "Cycle the PRIORITY groups given by the `org-treescope--todogroups` variable forward."
+(defun newlib-cycle-prioritystates-forwards ()
+  "Cycle the PRIORITY groups given by the `newlib--todogroups` variable forward."
   (interactive)
-  (org-treescope--next-state org-treescope--prioritygroups-state org-treescope--prioritygroups +))
+  (newlib--next-state newlib--prioritygroups-state newlib--prioritygroups +))
 
-(defun org-treescope-cycle-prioritystates-backwards ()
-  "Cycle the PRIORITY groups given by the `org-treescope--todogroups` variable forward."
+(defun newlib-cycle-prioritystates-backwards ()
+  "Cycle the PRIORITY groups given by the `newlib--todogroups` variable forward."
   (interactive)
-  (org-treescope--next-state org-treescope--prioritygroups-state org-treescope--prioritygroups -))
+  (newlib--next-state newlib--prioritygroups-state newlib--prioritygroups -))
 
 ;; -- Calendar Functions
-(defmacro org-treescope--markdate (abs face)
+(defmacro newlib--markdate (abs face)
   "Takes an ABS date and highlight it on the calendar with FACE."
   `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
 
-(defun org-treescope--first-of-lastmonth (&optional date)
+(defun newlib--first-of-lastmonth (&optional date)
   "Grab the first day of last month, given by DATE."
   (let* ((tod (or date (calendar-current-date)))
          (mont (calendar-extract-month tod))
@@ -307,7 +307,7 @@ where nil means don't select for time at all.")
         (list newm 1 year)
       (list 12 1 (- year 1)))))
 
-(defun org-treescope--last-of-nextmonth (&optional date)
+(defun newlib--last-of-nextmonth (&optional date)
   "Grab the last day of next month, given by DATE."
   (let* ((tod (or date (calendar-current-date)))
          (mont (calendar-extract-month tod))
@@ -317,20 +317,20 @@ where nil means don't select for time at all.")
         (list 1 31 (+ year 1))
       (list newm (calendar-last-day-of-month newm year) year))))
 
-(defun org-treescope--update-calendar ()
+(defun newlib--update-calendar ()
   "Show and update the calendar to show the left, right, and middle flanks."
   ;; if calendar not open
   (unless (member "*Calendar*"
                   (--map (buffer-name (window-buffer it)) (window-list)))
     (calendar))
-  (org-treescope-mode8 t)
+  (newlib-mode8 t)
   (calendar-unmark)
-  (let ((sel org-treescope--day--frommidpoint-select)
-        (mid org-treescope--day--midpoint)
-        (lfl org-treescope--day--leftflank)
-        (rfl org-treescope--day--rightflank)
-        (folm (calendar-absolute-from-gregorian (org-treescope--first-of-lastmonth)))
-        (lonm (calendar-absolute-from-gregorian (org-treescope--last-of-nextmonth))))
+  (let ((sel newlib--day--frommidpoint-select)
+        (mid newlib--day--midpoint)
+        (lfl newlib--day--leftflank)
+        (rfl newlib--day--rightflank)
+        (folm (calendar-absolute-from-gregorian (newlib--first-of-lastmonth)))
+        (lonm (calendar-absolute-from-gregorian (newlib--last-of-nextmonth))))
     (if sel
         ;; If a flank, redefine the flanking limits
         (cond ((string= sel ">=") (setq rfl lonm lfl mid))
@@ -343,19 +343,19 @@ where nil means don't select for time at all.")
         ;;         using `calendar-forward-day'.
         (if visiblep
             (if middlep
-                (org-treescope--markdate mid org-treescope-midday-marker)
-              (org-treescope--markdate absdate org-treescope-range-marker)))))))
+                (newlib--markdate mid newlib-midday-marker)
+              (newlib--markdate absdate newlib-range-marker)))))))
 
 
-(provide 'org-treescope)
-;;; org-treescope.el ends here
+(provide 'newlib)
+;;; newlib.el ends here
 
 
 ;; Attempt to macrofy interactive functions, does not save lines
 
-;; (defmacro org-treescope-macro-daybound (islow isfwd)
+;; (defmacro newlib-macro-daybound (islow isfwd)
 ;;   "Make interactive functions to move individual flanks, with ISLOW and ISFWD."
-;;   (let ((prefix "org-treescope")
+;;   (let ((prefix "newlib")
 ;;         (boundtype (if islow "lowerbound" "upperbound"))
 ;;         (direction (if isfwd "forwards" "backwards"))
 ;;         (funcdirec (if isfwd "+" "-"))
@@ -370,7 +370,7 @@ where nil means don't select for time at all.")
 ;;          (interactive)
 ;;          (,funcflnk ,funcbody ,funcdirc)))))
 
-;; (org-treescope-macro-daybound t t) ;; lowerbound forwards
-;; (org-treescope-macro-daybound t nil) ;; lowerbound backwards
-;; (org-treescope-macro-daybound nil t) ;; upperbound forwards
-;; (org-treescope-macro-daybound nil nil) ;; upperbound backwards
+;; (newlib-macro-daybound t t) ;; lowerbound forwards
+;; (newlib-macro-daybound t nil) ;; lowerbound backwards
+;; (newlib-macro-daybound nil t) ;; upperbound forwards
+;; (newlib-macro-daybound nil nil) ;; upperbound backwards
