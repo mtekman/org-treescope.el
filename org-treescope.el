@@ -321,9 +321,8 @@ where nil means don't select for time at all.")
 
 (defun newlib--first-of-lastmonth (&optional date)
   "Grab the first day of last month, given by DATE."
-  (let* ((tod (or date (calendar-current-date)))
-         (mont (calendar-extract-month tod))
-         (year (calendar-extract-year tod))
+  (let* ((mont displayed-month)
+         (year displayed-year)
          (newm (- mont 1)))
     (if (> newm 0)
         (list newm 1 year)
@@ -331,9 +330,8 @@ where nil means don't select for time at all.")
 
 (defun newlib--last-of-nextmonth (&optional date)
   "Grab the last day of next month, given by DATE."
-  (let* ((tod (or date (calendar-current-date)))
-         (mont (calendar-extract-month tod))
-         (year (calendar-extract-year tod))
+  (let* ((mont displayed-month)
+         (year displayed-year)
          (newm (+ mont 1)))
     (if (> newm 12)
         (list 1 31 (+ year 1))
