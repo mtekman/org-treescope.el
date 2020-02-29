@@ -347,27 +347,26 @@ where nil means don't select for time at all.")
     (calendar))
   (newlib-mode8 t)
   (calendar-unmark)
-  (let ((mid (newlib--getmidpoint-abs))
-        (sel newlib--day--frommidpoint-select)
-        (lfl newlib--day--leftflank)
-        (rfl newlib--day--rightflank)
-        ;; This might not be necessary if calendar now follows internal cursor
-        (folm (calendar-absolute-from-gregorian (newlib--first-of-lastmonth)))
-        (lonm (calendar-absolute-from-gregorian (newlib--last-of-nextmonth))))
-    (if sel
-        ;; If a flank, redefine the flanking limits
-        (cond ((string= sel ">=") (setq rfl lonm lfl mid))
-              ((string= sel "<=") (setq lfl folm rfl mid))))
-    ;; Now colour the defined range.
-    (dolist (absdate (number-sequence lfl rfl))
-      (let ((visiblep (<= folm absdate lonm))
-            (middlep (eq absdate mid)))
-        ;; FIXME - work out when to change the calendar when midpoint not visible
-        ;;         using `calendar-forward-day'.
-        (if visiblep
-            (if middlep
-                (newlib--markdate mid newlib-midday-marker)
-              (newlib--markdate absdate newlib-range-marker)))))))
+  (when newlib--timemode
+    (let ((mid (newlib--getmidpoint-abs))
+          (sel newlib--day--frommidpoint-select)
+          (lfl newlib--day--leftflank)
+          (rfl newlib--day--rightflank)
+          ;; This might not be necessary if calendar now follows internal cursor
+          (folm (calendar-absolute-from-gregorian (newlib--first-of-lastmonth)))
+          (lonm (calendar-absolute-from-gregorian (newlib--last-of-nextmonth))))
+      (if sel
+          ;; If a flank, redefine the flanking limits
+          (cond ((string= sel ">=") (setq rfl lonm lfl mid))
+                ((string= sel "<=") (setq lfl folm rfl mid))))
+      ;; Now colour the defined range.
+      (dolist (absdate (number-sequence lfl rfl))
+        (let ((visiblep (<= folm absdate lonm))
+              (middlep (eq absdate mid)))
+          (if visiblep
+              (if middlep
+                  (newlib--markdate mid newlib-midday-marker)
+                (newlib--markdate absdate newlib-range-marker))))))))
 
 
 (provide 'newlib)
