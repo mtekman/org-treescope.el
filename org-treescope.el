@@ -42,6 +42,7 @@
     ([M-right] . newlib-day-upperbound-forwards)
     ([C-M-left] . newlib-day-frommidpoint-leftwards)
     ([C-M-right] . newlib-day-frommidpoint-rightwards)
+    ([C-M-down] . newlib-day-frommidpoint-stop)
     ([C-up] . newlib-cycle-todostates-forwards)
     ([C-down] . newlib-cycle-todostates-backwards)
     ([M-up] . newlib-cycle-prioritystates-forwards)
@@ -161,13 +162,18 @@ Reset the `newlib--day--frommidpoint-select` to nil."
 (defun newlib-day-shiftrange-forwards-week (&optional silent)
   "Shift entire range forwards by a week and update midpoint.  Don't update if SILENT."
   (interactive)
-  ;; FIXME: work out why the midpoint jumps to end.
-  (newlib-day-shiftrange-forwards 7 silent))
+  ;; FIXME: why doesn't (newlib-day-shiftrange-forwards 7 t) work reliably?
+  ;;       - it seems any number over 3 does not jump to where it should,
+  ;;       - does not seem to be related to the sensible-values mid 3 thing
+  (newlib-day-shiftrange-forwards 3 t)
+  (newlib-day-shiftrange-forwards 3 t)
+  (newlib-day-shiftrange-forwards 1 silent))
 
 (defun newlib-day-shiftrange-forwards (&optional ndays silent)
   "Shift entire range forwards by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
   (newlib--shift-ranges + newlib-day-lowerbound-forwards newlib-day-upperbound-forwards))
+
 
 (defun newlib-day-lowerbound-forwards (&optional ndays silent)
   "Move left-flank by NDAYS forwards.  Don't update if SILENT."
