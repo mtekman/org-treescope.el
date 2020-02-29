@@ -20,12 +20,8 @@
 ;;         idea how to bound multiples
 (require 'calendar)
 
-
 ;; TODO:
 ;;  * Cycleable user defined modes
-;;  * Default time ranges to +-123wm, although how to describe that?
-;;  * Second mode for precisely controlled dates.
-;;  * reset org-treescope → newlib
 
 (define-minor-mode newlib-mode8
   "Test"
@@ -47,7 +43,7 @@
     ([C-down] . newlib-cycle-todostates-backwards)
     ([M-up] . newlib-cycle-prioritystates-forwards)
     ([M-down] . newlib-cycle-prioritystates-backwards)
-    ((kbd "r") . newlib-initialise-reset)
+    ((kbd "r") . newlib-start)
     ((kbd "t") . newlib-cycletimemode)))
 
 ;; -- Faces --
@@ -99,7 +95,7 @@
   "inline substitution to retrieve the current mid point in epochs."
   (calendar-absolute-from-gregorian (newlib--getmidpoint)))
 
-(defun newlib-initialise-reset ()
+(defun newlib-start ()
   "Reset all variables and center around current date."
   (interactive)
   (setq newlib--day--leftflank nil
@@ -230,12 +226,14 @@ where nil means don't select for time at all.")
     (setq newlib--timemode nextmode))
   (unless silent (newlib--update-all)))
 
+(defmacro newlib--datetostring ()
+  ;; TODO: Make sure the date is 0 padded otherwise nothing is shown
+  )
+
 (defun newlib--update-datestring ()
   "Update the date string based on current state."
   ;; For some reason newlib--shift-ranges does not parse it unless I put it here
-  (if (not newlib--timemode)
-      ;; FIXME: The & seperator is at the beginning when this is nil
-      (format "")
+  (when newlib--timemode
     (let ((format-lambda '(lambda (x) (format "%s" x))))
       (if newlib--day--frommidpoint-select
           (let* ((gregdate-mid (calendar-cursor-to-date))
@@ -273,11 +271,14 @@ where nil means don't select for time at all.")
     (let* ((slist `(,date-string ,todo-string ,priority-string))
            (mlist (--filter (if it it) slist))
            (formt (mapconcat 'identity mlist "&"))) ;; TODO: Become a + for priority
-      (message formt))))
+      (when formt
+        (message formt)
+        (with-current-buffer "projects.org"
+          (org-match-sparse-tree nil formt))))))
 
 ;; --- Todos and Priorities ---
 (defcustom newlib--todogroups
-  '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING"))
+  '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING") ("CLOSED"))
   "List of TODO groups to show in buffer.  A value of nil shows all."
   :type 'list
   :group 'treescope)
