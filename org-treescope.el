@@ -220,13 +220,15 @@ Reset the `newlib--day--frommidpoint-select` to nil."
   "Current mode to select on time. Valid values are TIMESTAMP, SCHEDULED, DEADLINE, and nil,
 where nil means don't select for time at all.")
 
-(defun newlib-cycletimemode ()
+(defun newlib-cycletimemode (&optional silent)
   "Cycle through the time mode selectors."
+  (interactive)
   (let* ((validmodes '(nil "TIMESTAMP" "SCHEDULED" "DEADLINE"))
          (currindex (cl-position newlib--timemode validmodes :test 'equal))
          (nextindex (mod (1+ currindex) 4))
          (nextmode (nth nextindex validmodes)))
-    (setq newlib--timemode nextmode)))
+    (setq newlib--timemode nextmode))
+  (unless silent (newlib--update-all)))
 
 (defun newlib--update-datestring ()
   "Update the date string based on current state."
