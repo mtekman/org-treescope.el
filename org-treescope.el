@@ -198,12 +198,20 @@ Reset the `newlib--day--frommidpoint-select` to nil."
 (defun newlib-day-frommidpoint-leftwards (&optional silent)
   "Ignore left and right flanks, and select all dates before midpoint.  Don't update if SILENT."
   (interactive)
-  (newlib--defaults-and-updates (setq newlib--day--frommidpoint-select "<=")))
+  (let ((ndays nil))
+    (newlib--defaults-and-updates (setq newlib--day--frommidpoint-select "<="))))
 
 (defun newlib-day-frommidpoint-rightwards (&optional silent)
   "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
   (interactive)
-  (newlib--defaults-and-updates (setq newlib--day--frommidpoint-select ">=")))
+  (let ((ndays nil))
+    (newlib--defaults-and-updates (setq newlib--day--frommidpoint-select ">="))))
+
+(defun newlib-day-frommidpoint-stop (&optional silent)
+  "Set the flank selector to nothing and restore shift range mode.  Don't update if SILENT."
+  (interactive)
+  (setq newlib--day--frommidpoint-select nil)
+  (unless silent (newlib--update-all)))
 
 ;; -- Update method --
 (defvar newlib--todogroups-state nil  "Current state of TODO custom group.")
@@ -228,7 +236,7 @@ where nil means don't select for time at all.")
       (format "")
     (let ((format-lambda '(lambda (x) (format "%s" x))))
       (if newlib--day--frommidpoint-select
-          (let* ((gregdate-mid (calendar-gregorian-from-absolute newlib--day--midpoint))
+          (let* ((gregdate-mid (calendar-cursor-to-date))
                  (strdate-mid (mapconcat format-lambda (reverse gregdate-mid) "-")))
             ;; e.g. <=<2020-12-02> or >=<2019-01-31>
             (format "%s%s\"<%s>\""
@@ -260,7 +268,6 @@ where nil means don't select for time at all.")
                (format "TODO={%s}" string-fmt))))
         (date-string (newlib--update-datestring)))
     (unless silent (newlib--update-calendar))
-    (setq newlib--day--frommidpoint-select nil)
     (let* ((slist `(,date-string ,todo-string ,priority-string))
            (mlist (--filter (if it it) slist))
            (formt (mapconcat 'identity mlist "&"))) ;; TODO: Become a + for priority
