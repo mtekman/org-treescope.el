@@ -235,25 +235,24 @@ where nil means don't select for time at all.")
   "Update the date string based on current state."
   ;; For some reason newlib--shift-ranges does not parse it unless I put it here
   (when newlib--timemode
-    (let ((format-lambda '(lambda (x) (format "%s" x))))
-      (if newlib--day--frommidpoint-select
-          (let* ((gregdate-mid (calendar-cursor-to-date))
-                 (strdate-mid (mapconcat format-lambda (reverse gregdate-mid) "-")))
-            ;; e.g. <=<2020-12-02> or >=<2019-01-31>
-            (format "%s%s\"<%s>\""
-                    newlib--timemode
-                    newlib--day--frommidpoint-select
-                    strdate-mid))
-        ;; Otherwise set a date range.
-        (let ((gregdate-left  (calendar-gregorian-from-absolute newlib--day--leftflank))
-              (gregdate-right (calendar-gregorian-from-absolute newlib--day--rightflank)))
-          (let ((strdate-left (mapconcat format-lambda (reverse gregdate-left) "-"))
-                (strdate-right (mapconcat format-lambda (reverse gregdate-right) "-")))
-            (format "%s>=\"<%s>\"&%s<=\"<%s>\""
-                    newlib--timemode
-                    strdate-left
-                    newlib--timemode
-                    strdate-right)))))))
+    (if newlib--day--frommidpoint-select
+        (let* ((gregdate-mid (calendar-cursor-to-date))
+               (strdate-mid (newlib--datetostring gregdate-mid)))
+          ;; e.g. <=<2020-12-02> or >=<2019-01-31>
+          (format "%s%s\"<%s>\""
+                  newlib--timemode
+                  newlib--day--frommidpoint-select
+                  strdate-mid))
+      ;; Otherwise set a date range.
+      (let ((gregdate-left  (calendar-gregorian-from-absolute newlib--day--leftflank))
+            (gregdate-right (calendar-gregorian-from-absolute newlib--day--rightflank)))
+        (let ((strdate-left (newlib--datetostring gregdate-left))
+              (strdate-right (newlib--datetostring gregdate-right)))
+          (format "%s>=\"<%s>\"&%s<=\"<%s>\""
+                  newlib--timemode
+                  strdate-left
+                  newlib--timemode
+                  strdate-right))))))
 
 (defun newlib--update-all (&optional silent)
   "Update the dates, todos, priorities and show on calendar if not SILENT."
