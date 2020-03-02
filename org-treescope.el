@@ -226,9 +226,10 @@ where nil means don't select for time at all.")
     (setq newlib--timemode nextmode))
   (unless silent (newlib--update-all)))
 
-(defmacro newlib--datetostring ()
+(defsubst newlib--datetostring (gregdate)
   ;; TODO: Make sure the date is 0 padded otherwise nothing is shown
-  )
+  (let ((revdate (reverse gregdate)))
+    (eval `(format "%04d-%02d-%02d" ,@revdate))))
 
 (defun newlib--update-datestring ()
   "Update the date string based on current state."
