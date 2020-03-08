@@ -224,7 +224,7 @@ where nil means don't select for time at all.")
          (nextindex (mod (1+ currindex) 4))
          (nextmode (nth nextindex validmodes)))
     (setq newlib--timemode nextmode))
-  (unless silent (newlib--update-all)))
+  (unless silent (newlib--constructformat)))
 
 (defsubst newlib--datetostring (gregdate)
   ;; TODO: Make sure the date is 0 padded otherwise nothing is shown
@@ -254,8 +254,14 @@ where nil means don't select for time at all.")
                   newlib--timemode
                   strdate-right))))))
 
-(defun newlib--update-all (&optional silent)
-  "Update the dates, todos, priorities and show on calendar if not SILENT."
+(defun newlib-apply-to-buffer (&optional format bname)
+  "Apply the FORMAT string on the org buffer BNAME as an argument to `org-match-sparse-tree'."
+  (interactive)
+  (let ((formt (if format format newlib--formatstring)))
+    (with-current-buffer newlib-userbuffer
+      (org-match-sparse-tree nil formt))))
+(defun newlib--constructformat (&optional silent)
+  "Generates the dates, todos, priority strings, and updates the calendar SILENT."
   (let ((priority-string
          (if newlib--prioritygroups-state
              (eval `(format "PRIORITY>=%s&PRIORITY<=%s"
@@ -267,14 +273,17 @@ where nil means don't select for time at all.")
                                 newlib--todogroups-state "\\|")))
                (format "TODO={%s}" string-fmt))))
         (date-string (newlib--update-datestring)))
+    (setq newlib--formatstring nil)  ; reset format string
     (unless silent (newlib--update-calendar))
     (let* ((slist `(,date-string ,todo-string ,priority-string))
            (mlist (--filter (if it it) slist))
            (formt (mapconcat 'identity mlist "&"))) ;; TODO: Become a + for priority
       (when formt
-        (message formt)
-        (with-current-buffer "projects.org"
-          (org-match-sparse-tree nil formt))))))
+        (message "%s%s" (if newlib--autoupdate-p "[Auto] " "") formt)
+        (setq newlib--formatstring formt)
+        (if newlib--autoupdate-p
+            ;; pass format as optional param for speed
+            (newlib--apply-to-buffer formt))))))
 
 ;; --- Todos and Priorities ---
 (defcustom newlib--todogroups
@@ -295,7 +304,7 @@ where nil means don't select for time at all.")
           (nxt-index (mod (,direction now-index 1) (length ,statelist)))
           (nxt-state (nth nxt-index ,statelist)))
      (setq ,statecurrent nxt-state)
-     (newlib--update-all t)))
+     (newlib--constructformat t)))
 
 (defun newlib-cycle-todostates-forwards ()
   "Cycle the TODO groups given by the `newlib--todogroups` variable forward."
