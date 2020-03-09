@@ -54,18 +54,6 @@
 (defvar newlib--day--rightflank nil)
 (defvar newlib--day--frommidpoint-select nil "Possible values are `<=` and `>=`.")
 
-;; -- Init --
-(defun newlib--getmidpoint ()
-  "Grabs the date under cursor (if calendar active), or returns the current date."
-  (condition-case err
-      (calendar-cursor-to-date nil nil)
-    (error
-     (ignore err)
-     (calendar-current-date))))
-
-(defsubst newlib--getmidpoint-abs ()
-  "inline substitution to retrieve the current mid point in epochs."
-  (calendar-absolute-from-gregorian (newlib--getmidpoint)))
 
 (defun newlib-start ()
   "Reset all variables and center around current date."
@@ -315,28 +303,6 @@ where nil means don't select for time at all.")
   (interactive)
   (newlib--next-state newlib--prioritygroups-state newlib--prioritygroups -))
 
-;; -- Calendar Functions
-(defmacro newlib--markdate (abs face)
-  "Takes an ABS date and highlight it on the calendar with FACE."
-  `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
-
-(defun newlib--first-of-lastmonth (&optional date)
-  "Grab the first day of last month, given by DATE."
-  (let* ((mont displayed-month)
-         (year displayed-year)
-         (newm (- mont 1)))
-    (if (> newm 0)
-        (list newm 1 year)
-      (list 12 1 (- year 1)))))
-
-(defun newlib--last-of-nextmonth (&optional date)
-  "Grab the last day of next month, given by DATE."
-  (let* ((mont displayed-month)
-         (year displayed-year)
-         (newm (+ mont 1)))
-    (if (> newm 12)
-        (list 1 31 (+ year 1))
-      (list newm (calendar-last-day-of-month newm year) year))))
 
 (defun newlib--update-calendar ()
   "Show and update the calendar to show the left, right, and middle flanks."
