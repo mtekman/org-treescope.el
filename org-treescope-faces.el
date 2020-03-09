@@ -13,7 +13,7 @@
 ;; See org-treescope.el
 
 ;;; Code:
-(require 'org-treescope)
+;;(require 'org-treescope)
 
 ;; -- Faces --
 (defface org-treescope-marker-range

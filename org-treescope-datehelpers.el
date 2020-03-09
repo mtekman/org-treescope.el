@@ -13,6 +13,10 @@
 ;; See org-treescope.el
 
 ;;; Code:
+
+;;(require 'org-treescope)
+(require 'calendar)
+
 (defvar org-treescope--autoupdate-p t ;; used by toggleautoupdate and construct-format
   "Automatically apply the current format string on every user update.")
 
@@ -37,8 +41,8 @@
   "Takes an ABS date and highlight it on the calendar with FACE."
   `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
 
-(defun org-treescope--first-of-lastmonth (&optional date) ;; update-calendar
-  "Grab the first day of last month, given by DATE."
+(defun org-treescope--first-of-lastmonth () ;; update-calendar
+  "Grab the first day of last month of current calendar window."
   (let* ((mont displayed-month)
          (year displayed-year)
          (newm (- mont 1)))
@@ -46,8 +50,8 @@
         (list newm 1 year)
       (list 12 1 (- year 1)))))
 
-(defun org-treescope--last-of-nextmonth (&optional date) ;; update-calendar
-  "Grab the last day of next month, given by DATE."
+(defun org-treescope--last-of-nextmonth () ;; update-calendar
+  "Grab the last day of next month of current calendar window."
   (let* ((mont displayed-month)
          (year displayed-year)
          (newm (+ mont 1)))
@@ -62,6 +66,7 @@
 
 (defun org-treescope--update-datestring () ;; construct-format
   "Update the date string based on current state."
+  (require 'org-treescope-todosandpriority)
   (when org-treescope--timemode
     (if org-treescope--day--frommidpoint-select
         (let* ((gregdate-mid (calendar-cursor-to-date))

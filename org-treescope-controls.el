@@ -13,8 +13,7 @@
 ;; See org-treescope.el
 
 ;;; Code:
-
-(require 'org-treescope)
+(require 'org-treescope-datehelpers)
 
 (defvar org-treescope--day--leftflank nil)
 (defvar org-treescope--day--rightflank nil)
@@ -62,6 +61,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 (defun org-treescope-day-shiftrange-forwards-week (&optional silent)
   "Shift entire range forwards by a week and update midpoint.  Don't update if SILENT."
   (interactive)
+  (ignore silent)
   ;; FIXME: why doesn't (org-treescope-day-shiftrange-forwards 7 t) work reliably?
   ;;       - it seems any number over 3 does not jump to where it should,
   ;;       - does not seem to be related to the sensible-values mid 3 thing
@@ -98,12 +98,14 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   "Ignore left and right flanks, and select all dates before midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays nil))
+    (ignore ndays) ;; used by macro
     (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select "<="))))
 
 (defun org-treescope-day-frommidpoint-rightwards (&optional silent)
   "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays nil))
+    (ignore ndays) ;; used by macro
     (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ">="))))
 
 (defun org-treescope-day-frommidpoint-stop (&optional silent)

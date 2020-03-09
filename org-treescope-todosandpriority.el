@@ -13,7 +13,7 @@
 ;; See org-treescope.el
 
 ;;; Code:
-(require 'org-treescope)
+;;(require 'org-treescope)
 
 (defvar org-treescope-todogroups-state nil  "Current state of TODO custom group.")
 (defvar org-treescope-prioritygroups-state nil  "Current state of GROUP custom group.")

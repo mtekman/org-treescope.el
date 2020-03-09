@@ -18,12 +18,11 @@
 
 ;; Edit -- progn is really not necessary here, but I have no
 ;;         idea how to bound multiples
-(require 'calendar)
 
-(require 'org-treescope-controls)
-(require 'org-treescope-datehelpers)
-(require 'org-treescope-faces)
-(require 'org-treescope-todosandpriority)
+;(require 'org-treescope-controls)
+;(require 'org-treescope-datehelpers)
+;(require 'org-treescope-faces)
+;(require 'org-treescope-todosandpriority)
 
 
 ;; TODO:
