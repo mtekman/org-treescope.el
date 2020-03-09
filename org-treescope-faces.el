@@ -13,10 +13,10 @@
 ;; See org-treescope.el
 
 ;;; Code:
-(require 'newlib)
+(require 'org-treescope)
 
 ;; -- Faces --
-(defface newlib-marker-range
+(defface org-treescope-marker-range
   '((((class color) (background light))
      :background "darkblue")
     (((class color) (background dark))
@@ -25,7 +25,7 @@
   "Face for showing the range markers."
   :group 'treescope-faces)
 
-(defface newlib-marker-midday
+(defface org-treescope-marker-midday
   '((((class color) (background light))
      :background "green")
     (((class color) (background dark))
@@ -34,16 +34,16 @@
   "Face for showing the middle marker."
   :group 'treescope-faces)
 
-(defcustom newlib-range-marker 'newlib-marker-range
+(defcustom org-treescope-range-marker 'org-treescope-marker-range
   "How to highlight all days covered by the ranges in the calendar."
   :type '(choice (string :tag "Single character string") face)
   :group 'treescope)
 
-(defcustom newlib-midday-marker 'newlib-marker-midday
+(defcustom org-treescope-midday-marker 'org-treescope-marker-midday
   "How to highlight all days covered by the ranges in the calendar."
   :type '(choice (string :tag "Single character string") face)
   :group 'treescope)
 
-(provide 'newlib-faces)
+(provide 'org-treescope-faces)
 
 ;;; org-treescope-faces.el ends here

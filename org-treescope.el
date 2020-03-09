@@ -20,99 +20,101 @@
 ;;         idea how to bound multiples
 (require 'calendar)
 
-(require 'newlib-controls)
-(require 'newlib-datehelpers)
-(require 'newlib-faces)
-(require 'newlib-todosandpriority)
+(require 'org-treescope-controls)
+(require 'org-treescope-datehelpers)
+(require 'org-treescope-faces)
+(require 'org-treescope-todosandpriority)
 
 
 ;; TODO:
 ;;  * Cycleable user defined modes
 
-(define-minor-mode newlib-mode8
+(define-minor-mode org-treescope-mode8
   "Test"
   :init-value nil
   :lighter " scope"
   :keymap
-  '(([left] . newlib-day-shiftrange-backwards)
-    ([right] . newlib-day-shiftrange-forwards)
-    ([up] . newlib-day-shiftrange-backwards-week)
-    ([down] . newlib-day-shiftrange-forwards-week)
-    ([C-left] . newlib-day-lowerbound-backwards)
-    ([C-right] . newlib-day-lowerbound-forwards)
-    ([M-left] . newlib-day-upperbound-backwards)
-    ([M-right] . newlib-day-upperbound-forwards)
-    ([C-M-left] . newlib-day-frommidpoint-leftwards)
-    ([C-M-right] . newlib-day-frommidpoint-rightwards)
-    ([C-M-down] . newlib-day-frommidpoint-stop)
-    ([C-up] . newlib-cycle-todostates-forwards)
-    ([C-down] . newlib-cycle-todostates-backwards)
-    ([M-up] . newlib-cycle-prioritystates-forwards)
-    ([M-down] . newlib-cycle-prioritystates-backwards)
-    ([return] . newlib-apply-to-buffer)
-    ((kbd "f") . newlib-toggleautoupdate)
-    ((kbd "r") . newlib-start)
-    ((kbd "t") . newlib-cycletimemode)))
+  '(([left] . org-treescope-day-shiftrange-backwards)
+    ([right] . org-treescope-day-shiftrange-forwards)
+    ([up] . org-treescope-day-shiftrange-backwards-week)
+    ([down] . org-treescope-day-shiftrange-forwards-week)
+    ([C-left] . org-treescope-day-lowerbound-backwards)
+    ([C-right] . org-treescope-day-lowerbound-forwards)
+    ([M-left] . org-treescope-day-upperbound-backwards)
+    ([M-right] . org-treescope-day-upperbound-forwards)
+    ([C-M-left] . org-treescope-day-frommidpoint-leftwards)
+    ([C-M-right] . org-treescope-day-frommidpoint-rightwards)
+    ([C-M-down] . org-treescope-day-frommidpoint-stop)
+    ([C-up] . org-treescope-cycle-todostates-forwards)
+    ([C-down] . org-treescope-cycle-todostates-backwards)
+    ([M-up] . org-treescope-cycle-prioritystates-forwards)
+    ([M-down] . org-treescope-cycle-prioritystates-backwards)
+    ([return] . org-treescope-apply-to-buffer)
+    ((kbd "f") . org-treescope-toggleautoupdate)
+    ((kbd "r") . org-treescope-start)
+    ((kbd "t") . org-treescope-cycletimemode)))
 
 
-(defun newlib-apply-to-buffer (&optional format)
+(defun org-treescope-apply-to-buffer (&optional format)
   "Apply the FORMAT string on the org buffer as an argument to `org-match-sparse-tree'."
   (interactive)
-  (let ((formt (if format format newlib--formatstring)))
-    (with-current-buffer newlib-userbuffer
+  (let ((formt (if format format org-treescope--formatstring)))
+    (with-current-buffer org-treescope-userbuffer
       (org-match-sparse-tree nil formt))))
 
 
 ;; -- Update method --
-(defvar newlib--formatstring nil
-  "The format string argument to pass to `org-match-sparse-tree' and applies to the `newlib-buffer'")
+(defvar org-treescope--formatstring nil
+  "The format string argument to pass to `org-match-sparse-tree' and applies to the `org-treescope-buffer'")
 
-;;(setq newlib-userbuffer "projects.org")
-(defcustom newlib-userbuffer "projects.org"
+;;(setq org-treescope-userbuffer "projects.org")
+(defcustom org-treescope-userbuffer "projects.org"
   "Apply format string to a specific user-defined buffer. Cannot be nil otherwise attempts to apply to calendar buffer.")
 
-(defun newlib--constructformat (&optional silent)
+(defun org-treescope--constructformat (&optional silent)
   "Generates the dates, todos, priority strings, and updates the calendar SILENT."
   (let ((priority-string
-         (if newlib--prioritygroups-state
+         (if org-treescope--prioritygroups-state
              (eval `(format "PRIORITY>=%s&PRIORITY<=%s"
-                            ,@newlib--prioritygroups-state))))
+                            ,@org-treescope--prioritygroups-state))))
         (todo-string
-         (if newlib-todogroups-state
+         (if org-treescope-todogroups-state
              (let* ((string-fmt
                      (mapconcat 'identity
-                                newlib-todogroups-state "\\|")))
+                                org-treescope-todogroups-state "\\|")))
                (format "TODO={%s}" string-fmt))))
-        (date-string (newlib--update-datestring)))
-    (setq newlib--formatstring nil)  ; reset format string
-    (unless silent (newlib--update-calendar))
+        (date-string (org-treescope--update-datestring)))
+    (setq org-treescope--formatstring nil)  ; reset format string
+    ;;
+    (unless silent (org-treescope--update-calendar))
+    ;;
     (let* ((slist `(,date-string ,todo-string ,priority-string))
            (mlist (--filter (if it it) slist))
            (formt (mapconcat 'identity mlist "&"))) ;; TODO: Become a + for priority
       (when formt
-        (message "%s%s" (if newlib--autoupdate-p "[Auto] " "") formt)
-        (setq newlib--formatstring formt)
-        (if newlib--autoupdate-p
+        (message "%s%s" (if org-treescope--autoupdate-p "[Auto] " "") formt)
+        (setq org-treescope--formatstring formt)
+        (if org-treescope--autoupdate-p
             ;; pass format as optional param for speed
-            (newlib--apply-to-buffer formt))))))
+            (org-treescope--apply-to-buffer formt))))))
 
 
-(defun newlib--update-calendar ()
+(defun org-treescope--update-calendar ()
   "Show and update the calendar to show the left, right, and middle flanks."
   ;; if calendar not open
   (unless (member "*Calendar*"
                   (--map (buffer-name (window-buffer it)) (window-list)))
     (calendar))
-  (newlib-mode8 t)
+  (org-treescope-mode8 t)
   (calendar-unmark)
-  (when newlib--timemode
-    (let ((mid (newlib--getmidpoint-abs))
-          (sel newlib--day--frommidpoint-select)
-          (lfl newlib--day--leftflank)
-          (rfl newlib--day--rightflank)
+  (when org-treescope--timemode
+    (let ((mid (org-treescope--getmidpoint-abs))
+          (sel org-treescope--day--frommidpoint-select)
+          (lfl org-treescope--day--leftflank)
+          (rfl org-treescope--day--rightflank)
           ;; This might not be necessary if calendar now follows internal cursor
-          (folm (calendar-absolute-from-gregorian (newlib--first-of-lastmonth)))
-          (lonm (calendar-absolute-from-gregorian (newlib--last-of-nextmonth))))
+          (folm (calendar-absolute-from-gregorian (org-treescope--first-of-lastmonth)))
+          (lonm (calendar-absolute-from-gregorian (org-treescope--last-of-nextmonth))))
       (if sel
           ;; If a flank, redefine the flanking limits
           (cond ((string= sel ">=") (setq rfl lonm lfl mid))
@@ -123,33 +125,37 @@
               (middlep (eq absdate mid)))
           (if visiblep
               (if middlep
-                  (newlib--markdate mid newlib-midday-marker)
-                (newlib--markdate absdate newlib-range-marker))))))))
+                  (org-treescope--markdate mid org-treescope-midday-marker)
+                (org-treescope--markdate absdate org-treescope-range-marker))))))))
 
 
-(defun newlib--sensible-values () ;; newlib-start
+(defun org-treescope--sensible-values () ;; org-treescope-start
   "Check that all time flankers are initialised and at sensible defaults."
   ;; We deal with absolute dates, not gregorian.
-  (let ((mid (newlib--getmidpoint-abs)))
-    (unless newlib--day--leftflank (setq newlib--day--leftflank (- mid 3)))
-    (unless newlib--day--rightflank (setq newlib--day--rightflank (+ mid 3))))
+  (let ((mid (org-treescope--getmidpoint-abs)))
+    (unless org-treescope--day--leftflank (setq org-treescope--day--leftflank (- mid 3)))
+    (unless org-treescope--day--rightflank (setq org-treescope--day--rightflank (+ mid 3))))
   ;; -- check sensible values --
-  (if (> newlib--day--leftflank newlib--day--rightflank)
-      (setq newlib--day--rightflank (+ newlib--day--leftflank 1)))
-  (if (< newlib--day--rightflank newlib--day--leftflank)
-      (setq newlib--day--leftflank (- newlib--day--rightflank 1))))
+  ;; left outflanks right
+  (if (> org-treescope--day--leftflank org-treescope--day--rightflank)
+      (setq org-treescope--day--rightflank
+            (+ org-treescope--day--leftflank 1)))
+  ;; right outflanks left
+  (if (< org-treescope--day--rightflank org-treescope--day--leftflank)
+      (setq org-treescope--day--leftflank
+            (- org-treescope--day--rightflank 1))))
   ;; TODO: Add clauses for what the midpoint is doing
 
 
-(defun newlib-start ()
+(defun org-treescope-start ()
   "Reset all variables and center around current date."
   (interactive)
-  (setq newlib--day--leftflank nil
-        newlib--day--rightflank nil
-        newlib--day--frommidpoint-select nil)
-  (newlib--sensible-values)
-  (newlib--constructformat))
+  (setq org-treescope--day--leftflank nil
+        org-treescope--day--rightflank nil
+        org-treescope--day--frommidpoint-select nil)
+  (org-treescope--sensible-values)
+  (org-treescope--constructformat))
 
 
-(provide 'newlib)
+(provide 'org-treescope)
 ;;; org-treescope.el ends here

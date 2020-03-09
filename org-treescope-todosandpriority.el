@@ -13,69 +13,69 @@
 ;; See org-treescope.el
 
 ;;; Code:
-(require 'newlib)
+(require 'org-treescope)
 
-(defvar newlib-todogroups-state nil  "Current state of TODO custom group.")
-(defvar newlib-prioritygroups-state nil  "Current state of GROUP custom group.")
+(defvar org-treescope-todogroups-state nil  "Current state of TODO custom group.")
+(defvar org-treescope-prioritygroups-state nil  "Current state of GROUP custom group.")
 
-(defcustom newlib-todogroups
+(defcustom org-treescope-todogroups
   '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING") ("CLOSED"))
   "List of TODO groups to show in buffer.  A value of nil shows all."
   :type 'list
   :group 'treescope)
 
-(defcustom newlib--prioritygroups
+(defcustom org-treescope--prioritygroups
   '(nil (65 68) (65 70) (70 75))
   "List of PRIORITY ranges (lowest highest) to show in buffer.  A value of nil shows all."
   :type 'list
   :group 'treescope)
 
-(defvar newlib--timemode "TIMESTAMP"
+(defvar org-treescope--timemode "TIMESTAMP"
   "Current mode to select on time. Valid values are TIMESTAMP, SCHEDULED, DEADLINE, and nil,
 where nil means don't select for time at all.")
 
-(defmacro newlib--next-state (statecurrent statelist direction)
+(defmacro org-treescope--next-state (statecurrent statelist direction)
   "Set the next state in the STATELIST from the STATECURRENT, cycling in DIRECTION."
   `(let* ((now-index (or (cl-position ,statecurrent ,statelist :test 'equal) 0))
           (nxt-index (mod (,direction now-index 1) (length ,statelist)))
           (nxt-state (nth nxt-index ,statelist)))
      (setq ,statecurrent nxt-state)
-     (newlib--constructformat t)))
+     (org-treescope--constructformat t)))
 
 ;; Todo
-(defun newlib-cycle-todostates-forwards ()
-  "Cycle the TODO groups given by the `newlib-todogroups` variable forward."
+(defun org-treescope-cycle-todostates-forwards ()
+  "Cycle the TODO groups given by the `org-treescope-todogroups` variable forward."
   (interactive)
-  (newlib--next-state newlib-todogroups-state newlib-todogroups +))
+  (org-treescope--next-state org-treescope-todogroups-state org-treescope-todogroups +))
 
-(defun newlib-cycle-todostates-backwards ()
-  "Cycle the TODO groups given by the `newlib-todogroups` variable forward."
+(defun org-treescope-cycle-todostates-backwards ()
+  "Cycle the TODO groups given by the `org-treescope-todogroups` variable forward."
   (interactive)
-  (newlib--next-state newlib-todogroups-state newlib-todogroups -))
+  (org-treescope--next-state org-treescope-todogroups-state org-treescope-todogroups -))
 
 ;; Priority 
-(defun newlib-cycle-prioritystates-forwards ()
-  "Cycle the PRIORITY groups given by the `newlib-todogroups` variable forward."
+(defun org-treescope-cycle-prioritystates-forwards ()
+  "Cycle the PRIORITY groups given by the `org-treescope-todogroups` variable forward."
   (interactive)
-  (newlib--next-state newlib-prioritygroups-state newlib--prioritygroups +))
+  (org-treescope--next-state org-treescope-prioritygroups-state org-treescope--prioritygroups +))
 
-(defun newlib-cycle-prioritystates-backwards ()
-  "Cycle the PRIORITY groups given by the `newlib-todogroups` variable forward."
+(defun org-treescope-cycle-prioritystates-backwards ()
+  "Cycle the PRIORITY groups given by the `org-treescope-todogroups` variable forward."
   (interactive)
-  (newlib--next-state newlib-prioritygroups-state newlib--prioritygroups -))
+  (org-treescope--next-state org-treescope-prioritygroups-state org-treescope--prioritygroups -))
 
 ;; Time
-(defun newlib-cycletimemode (&optional silent)
+(defun org-treescope-cycletimemode (&optional silent)
   "Cycle through the time mode selectors."
   (interactive)
   (let* ((validmodes '(nil "TIMESTAMP" "SCHEDULED" "DEADLINE"))
-         (currindex (cl-position newlib--timemode validmodes :test 'equal))
+         (currindex (cl-position org-treescope--timemode validmodes :test 'equal))
          (nextindex (mod (1+ currindex) 4))
          (nextmode (nth nextindex validmodes)))
-    (setq newlib--timemode nextmode))
-  (unless silent (newlib--constructformat)))
+    (setq org-treescope--timemode nextmode))
+  (unless silent (org-treescope--constructformat)))
 
 
-(provide 'newlib-todosandpriority)
+(provide 'org-treescope-todosandpriority)
 
 ;;; org-treescope-faces.el ends here
