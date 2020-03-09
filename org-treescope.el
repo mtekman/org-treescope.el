@@ -49,46 +49,33 @@
     ((kbd "t") . newlib-cycletimemode)))
 
 
+;; Standalone functions
+(defvar newlib--autoupdate-p t ;; used by toggleautoupdate and construct-format
+  "Automatically apply the current format string on every user update.")
 
-
-(defun newlib-start ()
-  "Reset all variables and center around current date."
+(defun newlib-toggleautoupdate () 
+  "Toggle the auto-update capability for every user-action."
   (interactive)
-  (setq newlib--day--leftflank nil
-        newlib--day--rightflank nil
-        newlib--day--frommidpoint-select nil)
-  (newlib--sensible-values)
-  (newlib--constructformat))
+  (setq newlib--autoupdate-p (not newlib--autoupdate-p)))
 
-(defun newlib--sensible-values ()
-  "Check that all time flankers are initialised and at sensible defaults."
-  ;; We deal with absolute dates, not gregorian.
-  (let ((mid (newlib--getmidpoint-abs)))
-    (unless newlib--day--leftflank (setq newlib--day--leftflank (- mid 3)))
-    (unless newlib--day--rightflank (setq newlib--day--rightflank (+ mid 3))))
-  ;; -- check sensible values --
-  (if (> newlib--day--leftflank newlib--day--rightflank)
-      (setq newlib--day--rightflank (+ newlib--day--leftflank 1)))
-  (if (< newlib--day--rightflank newlib--day--leftflank)
-      (setq newlib--day--leftflank (- newlib--day--rightflank 1))))
-  ;; TODO: Add clauses for what the midpoint is doing
-
+(defun newlib-apply-to-buffer (&optional format)
+  "Apply the FORMAT string on the org buffer as an argument to `org-match-sparse-tree'."
   (interactive)
-
-  (interactive)
+  (let ((formt (if format format newlib--formatstring)))
+    (with-current-buffer newlib-userbuffer
+      (org-match-sparse-tree nil formt))))
 
 
 ;; -- Update method --
+(defvar newlib--formatstring nil
+  "The format string argument to pass to `org-match-sparse-tree' and applies to the `newlib-buffer'")
 
-
-(defsubst newlib--datetostring (gregdate)
-  ;; TODO: Make sure the date is 0 padded otherwise nothing is shown
+(defsubst newlib--datetostring (gregdate) ;; update-datestring
   (let ((revdate (reverse gregdate)))
     (eval `(format "%04d-%02d-%02d" ,@revdate))))
 
-(defun newlib--update-datestring ()
+(defun newlib--update-datestring () ;; construct-format
   "Update the date string based on current state."
-  ;; For some reason newlib--shift-ranges does not parse it unless I put it here
   (when newlib--timemode
     (if newlib--day--frommidpoint-select
         (let* ((gregdate-mid (calendar-cursor-to-date))
@@ -109,28 +96,9 @@
                   newlib--timemode
                   strdate-right))))))
 
-
-(defvar newlib--autoupdate-p t
-  "Automatically apply the current format string on every user update.")
-
-(defvar newlib--formatstring nil
-  "The format string argument to pass to `org-match-sparse-tree' and applies to the `newlib-buffer'")
-
-;(setq newlib-userbuffer "projects.org")
+;;(setq newlib-userbuffer "projects.org")
 (defcustom newlib-userbuffer "projects.org"
   "Apply format string to a specific user-defined buffer. Cannot be nil otherwise attempts to apply to calendar buffer.")
-
-(defun newlib-apply-to-buffer (&optional format bname)
-  "Apply the FORMAT string on the org buffer BNAME as an argument to `org-match-sparse-tree'."
-  (interactive)
-  (let ((formt (if format format newlib--formatstring)))
-    (with-current-buffer newlib-userbuffer
-      (org-match-sparse-tree nil formt))))
-
-(defun newlib-toggleautoupdate ()
-  "Toggle the auto-update capability for every user-action."
-  (interactive)
-  (setq newlib--autoupdate-p (not newlib--autoupdate-p)))
 
 (defun newlib--constructformat (&optional silent)
   "Generates the dates, todos, priority strings, and updates the calendar SILENT."
@@ -139,10 +107,10 @@
              (eval `(format "PRIORITY>=%s&PRIORITY<=%s"
                             ,@newlib--prioritygroups-state))))
         (todo-string
-         (if newlib--todogroups-state
+         (if newlib-todogroups-state
              (let* ((string-fmt
                      (mapconcat 'identity
-                                newlib--todogroups-state "\\|")))
+                                newlib-todogroups-state "\\|")))
                (format "TODO={%s}" string-fmt))))
         (date-string (newlib--update-datestring)))
     (setq newlib--formatstring nil)  ; reset format string
@@ -188,10 +156,29 @@
                 (newlib--markdate absdate newlib-range-marker))))))))
 
 
+(defun newlib--sensible-values () ;; newlib-start
+  "Check that all time flankers are initialised and at sensible defaults."
+  ;; We deal with absolute dates, not gregorian.
+  (let ((mid (newlib--getmidpoint-abs)))
+    (unless newlib--day--leftflank (setq newlib--day--leftflank (- mid 3)))
+    (unless newlib--day--rightflank (setq newlib--day--rightflank (+ mid 3))))
+  ;; -- check sensible values --
+  (if (> newlib--day--leftflank newlib--day--rightflank)
+      (setq newlib--day--rightflank (+ newlib--day--leftflank 1)))
+  (if (< newlib--day--rightflank newlib--day--leftflank)
+      (setq newlib--day--leftflank (- newlib--day--rightflank 1))))
+  ;; TODO: Add clauses for what the midpoint is doing
+
+
+(defun newlib-start ()
+  "Reset all variables and center around current date."
+  (interactive)
+  (setq newlib--day--leftflank nil
+        newlib--day--rightflank nil
+        newlib--day--frommidpoint-select nil)
+  (newlib--sensible-values)
+  (newlib--constructformat))
+
+
 (provide 'newlib)
-;;; newlib.el ends here
-
-
-;; Attempt to macrofy interactive functions, does not save lines
-
-
+;;; org-treescope.el ends here
