@@ -20,6 +20,12 @@
 ;;         idea how to bound multiples
 (require 'calendar)
 
+(require 'newlib-controls)
+(require 'newlib-datehelpers)
+(require 'newlib-faces)
+(require 'newlib-todosandpriority)
+
+
 ;; TODO:
 ;;  * Cycleable user defined modes
 
@@ -47,7 +53,6 @@
     ((kbd "f") . newlib-toggleautoupdate)
     ((kbd "r") . newlib-start)
     ((kbd "t") . newlib-cycletimemode)))
-
 
 
 (defun newlib-apply-to-buffer (&optional format)
