@@ -43,6 +43,8 @@
     ([C-down] . newlib-cycle-todostates-backwards)
     ([M-up] . newlib-cycle-prioritystates-forwards)
     ([M-down] . newlib-cycle-prioritystates-backwards)
+    ([return] . newlib-apply-to-buffer)
+    ((kbd "f") . newlib-toggleautoupdate)
     ((kbd "r") . newlib-start)
     ((kbd "t") . newlib-cycletimemode)))
 
@@ -102,7 +104,7 @@
         newlib--day--rightflank nil
         newlib--day--frommidpoint-select nil)
   (newlib--sensible-values)
-  (newlib--update-all))
+  (newlib--constructformat))
 
 (defun newlib--sensible-values ()
   "Check that all time flankers are initialised and at sensible defaults."
@@ -125,7 +127,7 @@
      ,@innercode
      (unless silent
        (newlib--sensible-values)
-       (newlib--update-all))))
+       (newlib--constructformat))))
 (defmacro newlib--shift-ranges (direction lowerb upperb)
   "Call the LOWERB and UPPERB (low/up bounds) in DIRECTION.
 Reset the `newlib--day--frommidpoint-select` to nil."
@@ -207,7 +209,7 @@ Reset the `newlib--day--frommidpoint-select` to nil."
   "Set the flank selector to nothing and restore shift range mode.  Don't update if SILENT."
   (interactive)
   (setq newlib--day--frommidpoint-select nil)
-  (unless silent (newlib--update-all)))
+  (unless silent (newlib--constructformat)))
 
 ;; -- Update method --
 (defvar newlib--todogroups-state nil  "Current state of TODO custom group.")
@@ -254,12 +256,29 @@ where nil means don't select for time at all.")
                   newlib--timemode
                   strdate-right))))))
 
+
+(defvar newlib--autoupdate-p t
+  "Automatically apply the current format string on every user update.")
+
+(defvar newlib--formatstring nil
+  "The format string argument to pass to `org-match-sparse-tree' and applies to the `newlib-buffer'")
+
+;(setq newlib-userbuffer "projects.org")
+(defcustom newlib-userbuffer "projects.org"
+  "Apply format string to a specific user-defined buffer. Cannot be nil otherwise attempts to apply to calendar buffer.")
+
 (defun newlib-apply-to-buffer (&optional format bname)
   "Apply the FORMAT string on the org buffer BNAME as an argument to `org-match-sparse-tree'."
   (interactive)
   (let ((formt (if format format newlib--formatstring)))
     (with-current-buffer newlib-userbuffer
       (org-match-sparse-tree nil formt))))
+
+(defun newlib-toggleautoupdate ()
+  "Toggle the auto-update capability for every user-action."
+  (interactive)
+  (setq newlib--autoupdate-p (not newlib--autoupdate-p)))
+
 (defun newlib--constructformat (&optional silent)
   "Generates the dates, todos, priority strings, and updates the calendar SILENT."
   (let ((priority-string
