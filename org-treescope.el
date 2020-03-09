@@ -49,14 +49,6 @@
     ((kbd "t") . newlib-cycletimemode)))
 
 
-;; Standalone functions
-(defvar newlib--autoupdate-p t ;; used by toggleautoupdate and construct-format
-  "Automatically apply the current format string on every user update.")
-
-(defun newlib-toggleautoupdate () 
-  "Toggle the auto-update capability for every user-action."
-  (interactive)
-  (setq newlib--autoupdate-p (not newlib--autoupdate-p)))
 
 (defun newlib-apply-to-buffer (&optional format)
   "Apply the FORMAT string on the org buffer as an argument to `org-match-sparse-tree'."
@@ -69,32 +61,6 @@
 ;; -- Update method --
 (defvar newlib--formatstring nil
   "The format string argument to pass to `org-match-sparse-tree' and applies to the `newlib-buffer'")
-
-(defsubst newlib--datetostring (gregdate) ;; update-datestring
-  (let ((revdate (reverse gregdate)))
-    (eval `(format "%04d-%02d-%02d" ,@revdate))))
-
-(defun newlib--update-datestring () ;; construct-format
-  "Update the date string based on current state."
-  (when newlib--timemode
-    (if newlib--day--frommidpoint-select
-        (let* ((gregdate-mid (calendar-cursor-to-date))
-               (strdate-mid (newlib--datetostring gregdate-mid)))
-          ;; e.g. <=<2020-12-02> or >=<2019-01-31>
-          (format "%s%s\"<%s>\""
-                  newlib--timemode
-                  newlib--day--frommidpoint-select
-                  strdate-mid))
-      ;; Otherwise set a date range.
-      (let ((gregdate-left  (calendar-gregorian-from-absolute newlib--day--leftflank))
-            (gregdate-right (calendar-gregorian-from-absolute newlib--day--rightflank)))
-        (let ((strdate-left (newlib--datetostring gregdate-left))
-              (strdate-right (newlib--datetostring gregdate-right)))
-          (format "%s>=\"<%s>\"&%s<=\"<%s>\""
-                  newlib--timemode
-                  strdate-left
-                  newlib--timemode
-                  strdate-right))))))
 
 ;;(setq newlib-userbuffer "projects.org")
 (defcustom newlib-userbuffer "projects.org"
