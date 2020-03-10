@@ -19,14 +19,8 @@
 ;; Edit -- progn is really not necessary here, but I have no
 ;;         idea how to bound multiples
 
-;(require 'org-treescope-controls)
-;(require 'org-treescope-datehelpers)
-;(require 'org-treescope-faces)
-;(require 'org-treescope-todosandpriority)
-
-
 ;; TODO:
-;;  * Cycleable user defined modes
+;;  * Figure out how to split these into separate files for compiling...
 
 (define-minor-mode org-treescope-mode8
   "Test"
@@ -53,29 +47,329 @@
     ((kbd "r") . org-treescope-start)
     ((kbd "t") . org-treescope-cycletimemode)))
 
+;;(setq org-treescope-userbuffer "projects.org")
+(defcustom org-treescope-userbuffer "projects.org"
+  "Apply format string to a specific user-defined buffer. Cannot be nil otherwise attempts to apply to calendar buffer."
+  :type 'string
+  :group 'org-treescope)
 
-(defun org-treescope-apply-to-buffer (&optional format)
-  "Apply the FORMAT string on the org buffer as an argument to `org-match-sparse-tree'."
-  (interactive)
-  (let ((formt (if format format org-treescope--formatstring)))
-    (with-current-buffer org-treescope-userbuffer
-      (org-match-sparse-tree nil formt))))
+(defcustom org-treescope-todogroups
+  '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING") ("CLOSED"))
+  "List of TODO groups to show in buffer.  A value of nil shows all."
+  :type 'list
+  :group 'org-treescope)
+(defcustom org-treescope-prioritygroups
+  '(nil (65 68) (65 70) (70 75))
+  "List of PRIORITY ranges (lowest highest) to show in buffer.  A value of nil shows all."
+  :type 'list
+  :group 'org-treescope)
+
+;; -- Faces --
+(defface org-treescope--markerinternal-range
+  '((((class color) (background light))
+     :background "darkblue")
+    (((class color) (background dark))
+     :background "darkblue")
+    (t :inverse-video t))
+  "Face for showing the range markers."
+  :group 'treescope-faces)
+
+(defface org-treescope--markerinternal-midday
+  '((((class color) (background light))
+     :background "green")
+    (((class color) (background dark))
+     :background "green")
+    (t :inverse-video t))
+  "Face for showing the middle marker."
+  :group 'treescope-faces)
+
+(defcustom org-treescope-marker-range 'org-treescope--markerinternal-range
+  "How to highlight all days covered by the ranges in the calendar."
+  :type '(choice (string :tag "Single character string") face)
+  :group 'org-treescope)
+(defcustom org-treescope-marker-midday 'org-treescope--markerinternal-midday
+  "How to highlight all days covered by the ranges in the calendar."
+  :type '(choice (string :tag "Single character string") face)
+  :group 'org-treescope)
+
+(defvar org-treescope--day--leftflank nil)
+(defvar org-treescope--day--rightflank nil)
+(defvar org-treescope--day--frommidpoint-select nil "Possible values are `<=` and `>=`.")
+
+(defvar org-treescope--timemode "TIMESTAMP"
+  "Current mode to select on time. Valid values are TIMESTAMP, SCHEDULED, DEADLINE, and nil,
+where nil means don't select for time at all.")
 
 
-;; -- Update method --
+(defvar org-treescope-todogroups-state nil  "Current state of TODO custom group.")
+(defvar org-treescope--state-prioritygroups nil  "Current state of GROUP custom group.")
 (defvar org-treescope--formatstring nil
   "The format string argument to pass to `org-match-sparse-tree' and applies to the `org-treescope-buffer'")
 
-;;(setq org-treescope-userbuffer "projects.org")
-(defcustom org-treescope-userbuffer "projects.org"
-  "Apply format string to a specific user-defined buffer. Cannot be nil otherwise attempts to apply to calendar buffer.")
 
+
+;;;;;;;;;;;;;;; org-treescope-controls.el starts here ;;;;;;;;;;;;;;;
+(defsubst org-treescope--getmidpoint () ;; getmidpoint-abs
+  "Grabs the date under cursor (if calendar active), or returns the current date."
+  (condition-case err
+      (calendar-cursor-to-date nil nil)
+    (error
+     (ignore err)
+     (calendar-current-date))))
+
+(defsubst org-treescope--getmidpoint-abs () ;; called by sensible-values and update-calendar
+  "inline substitution to retrieve the current mid point in epochs."
+  (calendar-absolute-from-gregorian (org-treescope--getmidpoint)))
+
+;; -- Macros
+(defmacro org-treescope--defaults-and-updates (&rest innercode)
+  "Set default NDAYS to 1 and silent to true, run INNERCODE, and then update-now."
+  `(let ((ndays (if ndays ndays 1)))
+     ,@innercode
+     (unless silent
+       (org-treescope--sensible-values)
+       (org-treescope--constructformat))))
+
+(defmacro org-treescope--shift-ranges (direction lowerb upperb)
+  "Call the LOWERB and UPPERB (low/up bounds) in DIRECTION.
+Reset the `org-treescope--day--frommidpoint-select' to nil."
+  `(org-treescope--defaults-and-updates
+    (,lowerb ndays t)
+    (calendar-forward-day (,direction ndays))
+    (,upperb ndays t)))
+
+(defmacro org-treescope--shift-flanks (day-flank positive)
+  "Shift either the DAY-FLANK (left or right) flank in a POSITIVE or negative direction."
+  ;; Correctly drags the midpoint.
+  `(org-treescope--defaults-and-updates
+    (let ((midpoint (org-treescope--getmidpoint-abs)))
+      (setq ,day-flank (,positive ,day-flank ndays))
+      (if (or (< midpoint org-treescope--day--leftflank)
+              (> midpoint org-treescope--day--rightflank))
+          (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute ,day-flank))))))
+
+
+;; -- Date Methods
+(defun org-treescope-day-shiftrange-backwards (&optional ndays silent)
+  "Shift entire range back by NDAYS and update midpoint.  Don't update if SILENT."
+  (interactive)
+  (org-treescope--shift-ranges - org-treescope-day-lowerbound-backwards org-treescope-day-upperbound-backwards))
+
+(defun org-treescope-day-shiftrange-backwards-week (&optional silent)
+  "Shift entire range back by a week and update midpoint.  Don't update if SILENT."
+  (interactive)
+  (org-treescope-day-shiftrange-backwards 7 silent))
+
+(defun org-treescope-day-shiftrange-forwards-week (&optional silent)
+  "Shift entire range forwards by a week and update midpoint.  Don't update if SILENT."
+  (interactive)
+  (ignore silent)
+  ;; FIXME: why doesn't (org-treescope-day-shiftrange-forwards 7 t) work reliably?
+  ;;       - it seems any number over 3 does not jump to where it should,
+  ;;       - does not seem to be related to the sensible-values mid 3 thing
+  (org-treescope-day-shiftrange-forwards 3 t)
+  (org-treescope-day-shiftrange-forwards 3 t)
+  (org-treescope-day-shiftrange-forwards 1 t))
+
+(defun org-treescope-day-shiftrange-forwards (&optional ndays silent)
+  "Shift entire range forwards by NDAYS and update midpoint.  Don't update if SILENT."
+  (interactive)
+  (org-treescope--shift-ranges + org-treescope-day-lowerbound-forwards org-treescope-day-upperbound-forwards))
+
+(defun org-treescope-day-lowerbound-forwards (&optional ndays silent)
+  "Move left-flank by NDAYS forwards.  Don't update if SILENT."
+  (interactive)
+  (org-treescope--shift-flanks org-treescope--day--leftflank +))
+
+(defun org-treescope-day-lowerbound-backwards (&optional ndays silent)
+  "Move left-flank by NDAYS backwards.  Don't update if SILENT."
+  (interactive)
+  (org-treescope--shift-flanks org-treescope--day--leftflank -))
+
+(defun org-treescope-day-upperbound-forwards (&optional ndays silent)
+  "Move right-flank by NDAYS forwards.  Don't update if SILENT."
+  (interactive)
+  (org-treescope--shift-flanks org-treescope--day--rightflank +))
+
+(defun org-treescope-day-upperbound-backwards (&optional ndays silent)
+  "Move right-flank by NDAYS backwards.  Don't update if SILENT."
+  (interactive)
+  (org-treescope--shift-flanks org-treescope--day--rightflank -))
+
+
+(defun org-treescope-day-frommidpoint-leftwards (&optional silent)
+  "Ignore left and right flanks, and select all dates before midpoint.  Don't update if SILENT."
+  (interactive)
+  (let ((ndays nil))
+    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select "<="))))
+
+(defun org-treescope-day-frommidpoint-rightwards (&optional silent)
+  "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
+  (interactive)
+  (let ((ndays nil))
+    (ignore ndays) ;; used by macro
+    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ">="))))
+
+(defun org-treescope-day-frommidpoint-stop (&optional silent)
+  "Set the flank selector to nothing and restore shift range mode.  Don't update if SILENT."
+  (interactive)
+  (setq org-treescope--day--frommidpoint-select nil)
+  (unless silent (org-treescope--constructformat)))
+
+;; Attempt to macrofy interactive functions, does not save lines
+
+;; (defmacro org-treescope-macro-daybound (islow isfwd)
+;;   "Make interactive functions to move individual flanks, with ISLOW and ISFWD."
+;;   (let ((prefix "org-treescope")
+;;         (boundtype (if islow "lowerbound" "upperbound"))
+;;         (direction (if isfwd "forwards" "backwards"))
+;;         (funcdirec (if isfwd "+" "-"))
+;;         (flank (if isfwd "leftflank" "rightflank")))
+;;     (let ((funcname (intern (format "%s-day-%s-%s" prefix boundtype direction)))
+;;           (funcdocs (format "Move %s by NDAYS %s.  Don't update if SILENT." flank direction))
+;;           (funcflnk (intern (format "%s--shift-flanks" prefix)))
+;;           (funcbody (intern (format "%s--day--%s" prefix flank)))
+;;           (funcdirc (intern funcdirec)))
+;;       `(defun ,funcname (&optional ndays silent)
+;;          ,funcdocs
+;;          (interactive)
+;;          (,funcflnk ,funcbody ,funcdirc)))))
+
+;; (org-treescope-macro-daybound t t) ;; lowerbound forwards
+;; (org-treescope-macro-daybound t nil) ;; lowerbound backwards
+;; (org-treescope-macro-daybound nil t) ;; upperbound forwards
+;; (org-treescope-macro-daybound nil nil) ;; upperbound backwards
+
+;;;;;;;;;;;;;;; org-treescope-controls.el stops about here ;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;; org-treescope--datehelpers starts here ;;;;;;;;;;;;;;;
+(require 'calendar)
+
+(defvar org-treescope--autoupdate-p t ;; used by toggleautoupdate and construct-format
+  "Automatically apply the current format string on every user update.")
+
+(defun org-treescope-toggleautoupdate ()
+  "Toggle the auto-update capability for every user-action."
+  (interactive)
+  (setq org-treescope--autoupdate-p (not org-treescope--autoupdate-p)))
+
+(defmacro org-treescope--markdate (abs face) ;; update-calendar
+  "Takes an ABS date and highlight it on the calendar with FACE."
+  `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
+
+(defvar displayed-month 'displayed-month "Internal variable from calendar.el")
+(defvar displayed-year 'displayed-year "Internal variable from calendar.el")
+
+(defun org-treescope--first-of-lastmonth () ;; update-calendar
+  "Grab the first day of last month of current calendar window."
+  (let* ((mont displayed-month)
+         (year displayed-year)
+         (newm (- mont 1)))
+    (if (> newm 0)
+        (list newm 1 year)
+      (list 12 1 (- year 1)))))
+
+(defun org-treescope--last-of-nextmonth () ;; update-calendar
+  "Grab the last day of next month of current calendar window."
+  (let* ((mont displayed-month)
+         (year displayed-year)
+         (newm (+ mont 1)))
+    (if (> newm 12)
+        (list 1 31 (+ year 1))
+      (list newm (calendar-last-day-of-month newm year) year))))
+
+
+(defsubst org-treescope--datetostring (gregdate) ;; update-datestring
+  (let ((revdate (reverse gregdate)))
+    (eval `(format "%04d-%02d-%02d" ,@revdate))))
+
+(defun org-treescope--update-datestring () ;; construct-format
+  "Update the date string based on current state."
+  (when org-treescope--timemode
+    (if org-treescope--day--frommidpoint-select
+        (let* ((gregdate-mid (calendar-cursor-to-date))
+               (strdate-mid (org-treescope--datetostring gregdate-mid)))
+          ;; e.g. <=<2020-12-02> or >=<2019-01-31>
+          (format "%s%s\"<%s>\""
+                  org-treescope--timemode
+                  org-treescope--day--frommidpoint-select
+                  strdate-mid))
+      ;; Otherwise set a date range.
+      (let ((gregdate-left  (calendar-gregorian-from-absolute org-treescope--day--leftflank))
+            (gregdate-right (calendar-gregorian-from-absolute org-treescope--day--rightflank)))
+        (let ((strdate-left (org-treescope--datetostring gregdate-left))
+              (strdate-right (org-treescope--datetostring gregdate-right)))
+          (format "%s>=\"<%s>\"&%s<=\"<%s>\""
+                  org-treescope--timemode
+                  strdate-left
+                  org-treescope--timemode
+                  strdate-right))))))
+
+
+;;;;;;;;;;;;;;; org-treescope-datehelpers.el stops about here ;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;; org-treescope-todosandpriority starts about here ;;;;;;;;;;;;;;;
+(defmacro org-treescope--next-state (statecurrent statelist direction)
+  "Set the next state in the STATELIST from the STATECURRENT, cycling in DIRECTION."
+  `(let* ((now-index (or (cl-position ,statecurrent ,statelist :test 'equal) 0))
+          (nxt-index (mod (,direction now-index 1) (length ,statelist)))
+          (nxt-state (nth nxt-index ,statelist)))
+     (setq ,statecurrent nxt-state)
+     (org-treescope--constructformat t)))
+
+;; Todo
+(defun org-treescope-cycle-todostates-forwards ()
+  "Cycle the TODO groups given by the `org-treescope-todogroups` variable forward."
+  (interactive)
+  (org-treescope--next-state org-treescope-todogroups-state org-treescope-todogroups +))
+
+(defun org-treescope-cycle-todostates-backwards ()
+  "Cycle the TODO groups given by the `org-treescope-todogroups` variable forward."
+  (interactive)
+  (org-treescope--next-state org-treescope-todogroups-state org-treescope-todogroups -))
+
+;; Priority 
+(defun org-treescope-cycle-prioritystates-forwards ()
+  "Cycle the PRIORITY groups given by the `org-treescope-todogroups` variable forward."
+  (interactive)
+  (org-treescope--next-state org-treescope-prioritygroups-state org-treescope-prioritygroups +))
+
+(defun org-treescope-cycle-prioritystates-backwards ()
+  "Cycle the PRIORITY groups given by the `org-treescope-todogroups` variable forward."
+  (interactive)
+  (org-treescope--next-state org-treescope-prioritygroups-state org-treescope-prioritygroups -))
+
+;; Time
+(defun org-treescope-cycletimemode (&optional silent)
+  "Cycle through the time mode selectors."
+  (interactive)
+  (let* ((validmodes '(nil "TIMESTAMP" "SCHEDULED" "DEADLINE"))
+         (currindex (cl-position org-treescope--timemode validmodes :test 'equal))
+         (nextindex (mod (1+ currindex) 4))
+         (nextmode (nth nextindex validmodes)))
+    (setq org-treescope--timemode nextmode))
+  (unless silent (org-treescope--constructformat)))
+
+;;;;;;;;;;;;;;; org-treescope-todosandpriority.el ends about here ;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;; org-treescope.el starts about here ;;;;;;;;;;;;;;;
+(defun org-treescope-apply-to-buffer (&optional format)
+  "Apply the FORMAT string on the org buffer as an argument to `org-match-sparse-tree'."
+  (interactive)
+  (message "Applying...")
+  (let ((formt (if format format org-treescope--formatstring)))
+    (with-current-buffer org-treescope-userbuffer
+      (org-match-sparse-tree nil formt)
+      (message "Applying... done"))))
+
+;; -- Update method --
 (defun org-treescope--constructformat (&optional silent)
   "Generates the dates, todos, priority strings, and updates the calendar SILENT."
   (let ((priority-string
-         (if org-treescope--prioritygroups-state
+         (if org-treescope--state-prioritygroups
              (eval `(format "PRIORITY>=%s&PRIORITY<=%s"
-                            ,@org-treescope--prioritygroups-state))))
+                            ,@org-treescope--state-prioritygroups))))
         (todo-string
          (if org-treescope-todogroups-state
              (let* ((string-fmt
@@ -95,7 +389,7 @@
         (setq org-treescope--formatstring formt)
         (if org-treescope--autoupdate-p
             ;; pass format as optional param for speed
-            (org-treescope--apply-to-buffer formt))))))
+            (org-treescope-apply-to-buffer formt))))))
 
 
 (defun org-treescope--update-calendar ()
@@ -124,8 +418,8 @@
               (middlep (eq absdate mid)))
           (if visiblep
               (if middlep
-                  (org-treescope--markdate mid org-treescope-midday-marker)
-                (org-treescope--markdate absdate org-treescope-range-marker))))))))
+                  (org-treescope--markdate mid org-treescope-marker-midday)
+                (org-treescope--markdate absdate org-treescope-marker-range))))))))
 
 
 (defun org-treescope--sensible-values () ;; org-treescope-start
@@ -157,4 +451,6 @@
 
 
 (provide 'org-treescope)
+;;;;;;;;;;;;;;; org-treescope.el starts about here ;;;;;;;;;;;;;;;
+
 ;;; org-treescope.el ends here
