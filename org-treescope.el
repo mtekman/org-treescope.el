@@ -44,7 +44,6 @@
     ([M-down] . org-treescope-cycle-prioritystates-backwards)
     ([return] . org-treescope-apply-to-buffer)
     ((kbd "f") . org-treescope-toggleautoupdate)
-    ((kbd "r") . org-treescope-start)
     ((kbd "t") . org-treescope-cycletimemode)))
 
 ;;(setq org-treescope-userbuffer "projects.org")
@@ -440,7 +439,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   ;; TODO: Add clauses for what the midpoint is doing
 
 
-(defun org-treescope-start ()
+(defun org-treescope ()
   "Reset all variables and center around current date."
   (interactive)
   (setq org-treescope--day--leftflank nil
