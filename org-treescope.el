@@ -279,8 +279,10 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 
 
 (defsubst org-treescope--datetostring (gregdate) ;; update-datestring
-  (let ((revdate (reverse gregdate)))
-    (eval `(format "%04d-%02d-%02d" ,@revdate))))
+  (let ((year (nth 2 gregdate))
+        (month (nth 0 gregdate))
+        (day (nth 1 gregdate)))
+    (format "%04d-%02d-%02d" year month day)))
 
 (defun org-treescope--update-datestring () ;; construct-format
   "Update the date string based on current state."
@@ -356,11 +358,12 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 (defun org-treescope-apply-to-buffer (&optional format)
   "Apply the FORMAT string on the org buffer as an argument to `org-match-sparse-tree'."
   (interactive)
-  (message "Applying...")
+  ;; TODO: a sit-for delay to show this message.
+  ;;(message "Applying...")
   (let ((formt (if format format org-treescope--formatstring)))
     (with-current-buffer org-treescope-userbuffer
       (org-match-sparse-tree nil formt)
-      (message "Applying... done"))))
+      (message formt))))
 
 ;; -- Update method --
 (defun org-treescope--constructformat (&optional silent)
@@ -384,7 +387,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
            (mlist (--filter (if it it) slist))
            (formt (mapconcat 'identity mlist "&"))) ;; TODO: Become a + for priority
       (when formt
-        (message "%s%s" (if org-treescope--autoupdate-p "[Auto] " "") formt)
+        (message "%s%s" formt (if org-treescope--autoupdate-p "  [Auto]" ""))
         (setq org-treescope--formatstring formt)
         (if org-treescope--autoupdate-p
             ;; pass format as optional param for speed
