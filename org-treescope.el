@@ -48,7 +48,7 @@
 
 ;;(setq org-treescope-userbuffer "projects.org")
 (defcustom org-treescope-userbuffer "projects.org"
-  "Apply format string to a specific user-defined buffer. Cannot be nil otherwise attempts to apply to calendar buffer."
+  "Apply format string to a specific user-defined buffer.  Cannot be nil otherwise attempts to apply to calendar buffer."
   :type 'string
   :group 'org-treescope)
 
@@ -96,20 +96,21 @@
 (defvar org-treescope--day--frommidpoint-select nil "Possible values are `<=` and `>=`.")
 
 (defvar org-treescope--timemode "TIMESTAMP"
-  "Current mode to select on time. Valid values are TIMESTAMP, SCHEDULED, DEADLINE, and nil,
+  "Current mode to select on time.
+Valid values are TIMESTAMP, SCHEDULED, DEADLINE, and nil,
 where nil means don't select for time at all.")
 
 
 (defvar org-treescope-todogroups-state nil  "Current state of TODO custom group.")
 (defvar org-treescope--state-prioritygroups nil  "Current state of GROUP custom group.")
 (defvar org-treescope--formatstring nil
-  "The format string argument to pass to `org-match-sparse-tree' and applies to the `org-treescope-buffer'")
+  "The format string argument to pass to `org-match-sparse-tree' and applies to the `org-treescope-buffer'.")
 
 
 
 ;;;;;;;;;;;;;;; org-treescope-controls.el starts here ;;;;;;;;;;;;;;;
 (defsubst org-treescope--getmidpoint () ;; getmidpoint-abs
-  "Grabs the date under cursor (if calendar active), or returns the current date."
+  "Grabs the date under cursor (if calendar active), or return the current date."
   (condition-case err
       (calendar-cursor-to-date nil nil)
     (error
@@ -117,7 +118,7 @@ where nil means don't select for time at all.")
      (calendar-current-date))))
 
 (defsubst org-treescope--getmidpoint-abs () ;; called by sensible-values and update-calendar
-  "inline substitution to retrieve the current mid point in epochs."
+  "Inline substitution to retrieve the current mid point in epochs."
   (calendar-absolute-from-gregorian (org-treescope--getmidpoint)))
 
 ;; -- Macros
@@ -149,16 +150,19 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 
 
 ;; -- Date Methods
+;;;###autoload
 (defun org-treescope-day-shiftrange-backwards (&optional ndays silent)
   "Shift entire range back by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-ranges - org-treescope-day-lowerbound-backwards org-treescope-day-upperbound-backwards))
 
+;;;###autoload
 (defun org-treescope-day-shiftrange-backwards-week (&optional silent)
   "Shift entire range back by a week and update midpoint.  Don't update if SILENT."
   (interactive)
   (org-treescope-day-shiftrange-backwards 7 silent))
 
+;;;###autoload
 (defun org-treescope-day-shiftrange-forwards-week (&optional silent)
   "Shift entire range forwards by a week and update midpoint.  Don't update if SILENT."
   (interactive)
@@ -170,38 +174,44 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   (org-treescope-day-shiftrange-forwards 3 t)
   (org-treescope-day-shiftrange-forwards 1 t))
 
+;;;###autoload
 (defun org-treescope-day-shiftrange-forwards (&optional ndays silent)
   "Shift entire range forwards by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-ranges + org-treescope-day-lowerbound-forwards org-treescope-day-upperbound-forwards))
 
+;;;###autoload
 (defun org-treescope-day-lowerbound-forwards (&optional ndays silent)
   "Move left-flank by NDAYS forwards.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-flanks org-treescope--day--leftflank +))
 
+;;;###autoload
 (defun org-treescope-day-lowerbound-backwards (&optional ndays silent)
   "Move left-flank by NDAYS backwards.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-flanks org-treescope--day--leftflank -))
 
+;;;###autoload
 (defun org-treescope-day-upperbound-forwards (&optional ndays silent)
   "Move right-flank by NDAYS forwards.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-flanks org-treescope--day--rightflank +))
 
+;;;###autoload
 (defun org-treescope-day-upperbound-backwards (&optional ndays silent)
   "Move right-flank by NDAYS backwards.  Don't update if SILENT."
   (interactive)
   (org-treescope--shift-flanks org-treescope--day--rightflank -))
 
-
+;;;###autoload
 (defun org-treescope-day-frommidpoint-leftwards (&optional silent)
   "Ignore left and right flanks, and select all dates before midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays nil))
     (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select "<="))))
 
+;;;###autoload
 (defun org-treescope-day-frommidpoint-rightwards (&optional silent)
   "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
   (interactive)
@@ -209,6 +219,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
     (ignore ndays) ;; used by macro
     (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ">="))))
 
+;;;###autoload
 (defun org-treescope-day-frommidpoint-stop (&optional silent)
   "Set the flank selector to nothing and restore shift range mode.  Don't update if SILENT."
   (interactive)
@@ -247,6 +258,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 (defvar org-treescope--autoupdate-p t ;; used by toggleautoupdate and construct-format
   "Automatically apply the current format string on every user update.")
 
+;;;###autoload
 (defun org-treescope-toggleautoupdate ()
   "Toggle the auto-update capability for every user-action."
   (interactive)
@@ -256,11 +268,12 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   "Takes an ABS date and highlight it on the calendar with FACE."
   `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
 
-(defvar displayed-month 'displayed-month "Internal variable from calendar.el")
-(defvar displayed-year 'displayed-year "Internal variable from calendar.el")
+;; -- Throws lint errors
+(defvar displayed-month 'displayed-month "Internal variable from calendar.el.")
+(defvar displayed-year 'displayed-year "Internal variable from calendar.el.")
 
-(defun org-treescope--first-of-lastmonth () ;; update-calendar
-  "Grab the first day of last month of current calendar window."
+(defun org-treescope--first-of-lastmonth ()
+  "Grab the first day of last month of current calendar window.  Used by `org-treescope--update-calendar'."
   (let* ((mont displayed-month)
          (year displayed-year)
          (newm (- mont 1)))
@@ -268,8 +281,8 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
         (list newm 1 year)
       (list 12 1 (- year 1)))))
 
-(defun org-treescope--last-of-nextmonth () ;; update-calendar
-  "Grab the last day of next month of current calendar window."
+(defun org-treescope--last-of-nextmonth ()
+  "Grab the last day of next month of current calendar window.  Used by `org-treescope--update-calendar'."
   (let* ((mont displayed-month)
          (year displayed-year)
          (newm (+ mont 1)))
@@ -277,8 +290,8 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
         (list 1 31 (+ year 1))
       (list newm (calendar-last-day-of-month newm year) year))))
 
-
-(defsubst org-treescope--datetostring (gregdate) ;; update-datestring
+(defsubst org-treescope--datetostring (gregdate)
+  "Convert GREGDATE to an org compatible date.  Used by `org-treescope--update-calendar'."
   (let ((year (nth 2 gregdate))
         (month (nth 0 gregdate))
         (day (nth 1 gregdate)))
@@ -319,30 +332,35 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
      (org-treescope--constructformat t)))
 
 ;; Todo
+;;;###autoload
 (defun org-treescope-cycle-todostates-forwards ()
-  "Cycle the TODO groups given by the `org-treescope-todogroups` variable forward."
+  "Cycle the TODO groups given by the `org-treescope-todogroups' variable forward."
   (interactive)
   (org-treescope--next-state org-treescope-todogroups-state org-treescope-todogroups +))
 
+;;;###autoload
 (defun org-treescope-cycle-todostates-backwards ()
-  "Cycle the TODO groups given by the `org-treescope-todogroups` variable forward."
+  "Cycle the TODO groups given by the `org-treescope-todogroups' variable forward."
   (interactive)
   (org-treescope--next-state org-treescope-todogroups-state org-treescope-todogroups -))
 
-;; Priority 
+;; Priority
+;;;###autoload
 (defun org-treescope-cycle-prioritystates-forwards ()
-  "Cycle the PRIORITY groups given by the `org-treescope-todogroups` variable forward."
+  "Cycle the PRIORITY groups given by the `org-treescope-todogroups' variable forward."
   (interactive)
   (org-treescope--next-state org-treescope-prioritygroups-state org-treescope-prioritygroups +))
 
+;;;###autoload
 (defun org-treescope-cycle-prioritystates-backwards ()
-  "Cycle the PRIORITY groups given by the `org-treescope-todogroups` variable forward."
+  "Cycle the PRIORITY groups given by the `org-treescope-todogroups' variable forward."
   (interactive)
   (org-treescope--next-state org-treescope-prioritygroups-state org-treescope-prioritygroups -))
 
 ;; Time
+;;;###autoload
 (defun org-treescope-cycletimemode (&optional silent)
-  "Cycle through the time mode selectors."
+  "Cycle through the time mode selectors, and update the calendar if not SILENT."
   (interactive)
   (let* ((validmodes '(nil "TIMESTAMP" "SCHEDULED" "DEADLINE"))
          (currindex (cl-position org-treescope--timemode validmodes :test 'equal))
@@ -355,6 +373,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 
 
 ;;;;;;;;;;;;;;; org-treescope.el starts about here ;;;;;;;;;;;;;;;
+;;;###autoload
 (defun org-treescope-apply-to-buffer (&optional format)
   "Apply the FORMAT string on the org buffer as an argument to `org-match-sparse-tree'."
   (interactive)
@@ -367,7 +386,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 
 ;; -- Update method --
 (defun org-treescope--constructformat (&optional silent)
-  "Generates the dates, todos, priority strings, and updates the calendar SILENT."
+  "Generate the dates, todos, priority strings, and don't update the calendar if SILENT."
   (let ((priority-string
          (if org-treescope--state-prioritygroups
              (eval `(format "PRIORITY>=%s&PRIORITY<=%s"
@@ -441,7 +460,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
             (- org-treescope--day--rightflank 1))))
   ;; TODO: Add clauses for what the midpoint is doing
 
-
+;;;###autoload
 (defun org-treescope ()
   "Reset all variables and center around current date."
   (interactive)
