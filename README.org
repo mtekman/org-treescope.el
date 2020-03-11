@@ -57,7 +57,7 @@ I don't do that. My mind is simple. I like trees. Trees are easy. You have one o
     <small> If your org file is large, there can be some slowdown when making incremental changes to states. Toggling this allows you to set the query string first before applying it with =return=. </small>
 
 
-** Customization
+** Customisation
 
    The user should set the =org-treescope-userbuffer= to a single org-mode file, and also check that the below scope types are set to reasonable ranges for that file.
 
@@ -75,7 +75,7 @@ I don't do that. My mind is simple. I like trees. Trees are easy. You have one o
 
 *** Faces
 
-    The faces used within the calendar can also be customized, and the user should see the =defface= definitions used in the source.
+    The faces used within the calendar can also be customised, and the user should see the =defface= definitions used in the source.
 
     | Variable                    | Info                                                                                 |
     |-----------------------------+--------------------------------------------------------------------------------------|
