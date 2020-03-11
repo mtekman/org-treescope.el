@@ -108,7 +108,7 @@ Valid values are TIMESTAMP, SCHEDULED, DEADLINE, and nil,
 where nil means don't select for time at all.")
 
 
-(defvar org-treescope-todogroups-state nil  "Current state of TODO custom group.")
+(defvar org-treescope--state-todogroups nil  "Current state of TODO custom group.")
 (defvar org-treescope--state-prioritygroups nil  "Current state of GROUP custom group.")
 (defvar org-treescope--formatstring nil
   "The format string argument to pass to `org-match-sparse-tree' and applies to the `org-treescope-buffer'.")
@@ -343,26 +343,26 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 (defun org-treescope-cycle-todostates-forwards ()
   "Cycle the TODO groups given by the `org-treescope-todogroups' variable forward."
   (interactive)
-  (org-treescope--next-state org-treescope-todogroups-state org-treescope-todogroups +))
+  (org-treescope--next-state org-treescope--state-todogroups org-treescope-todogroups +))
 
 ;;;###autoload
 (defun org-treescope-cycle-todostates-backwards ()
   "Cycle the TODO groups given by the `org-treescope-todogroups' variable forward."
   (interactive)
-  (org-treescope--next-state org-treescope-todogroups-state org-treescope-todogroups -))
+  (org-treescope--next-state org-treescope--state-todogroups org-treescope-todogroups -))
 
 ;; Priority
 ;;;###autoload
 (defun org-treescope-cycle-prioritystates-forwards ()
   "Cycle the PRIORITY groups given by the `org-treescope-todogroups' variable forward."
   (interactive)
-  (org-treescope--next-state org-treescope-prioritygroups-state org-treescope-prioritygroups +))
+  (org-treescope--next-state org-treescope--state-prioritygroups org-treescope-prioritygroups +))
 
 ;;;###autoload
 (defun org-treescope-cycle-prioritystates-backwards ()
   "Cycle the PRIORITY groups given by the `org-treescope-todogroups' variable forward."
   (interactive)
-  (org-treescope--next-state org-treescope-prioritygroups-state org-treescope-prioritygroups -))
+  (org-treescope--next-state org-treescope--state-prioritygroups org-treescope-prioritygroups -))
 
 ;; Time
 ;;;###autoload
@@ -399,10 +399,10 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
              (eval `(format "PRIORITY>=%s&PRIORITY<=%s"
                             ,@org-treescope--state-prioritygroups))))
         (todo-string
-         (if org-treescope-todogroups-state
+         (if org-treescope--state-todogroups
              (let* ((string-fmt
                      (mapconcat 'identity
-                                org-treescope-todogroups-state "\\|")))
+                                org-treescope--state-todogroups "\\|")))
                (format "TODO={%s}" string-fmt))))
         (date-string (org-treescope--update-datestring)))
     (setq org-treescope--formatstring nil)  ; reset format string
