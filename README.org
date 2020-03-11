@@ -1,0 +1,85 @@
+#+TITLE: org-treescope.el
+
+# NOTE: HTML for the GitHub renderer, courtesy of alphapapa for the template.
+#+HTML: <a href="https://melpa.org/#/org-treescope"><img src="https://melpa.org/packages/org-treescope-badge.svg"></a> <a href="https://stable.melpa.org/#/org-treescope"><img src="https://stable.melpa.org/packages/org-treescope-badge.svg"></a>
+
+Many people place the power of org-mode into the reports provided by org-agenda, which filters and summarizes org entries by tags, todo states, priorities and tags. 
+
+I don't do that. My mind is simple. I like trees. Trees are easy. You have one org mode file and you filter it for what you need, whether it's a quick glance at what you did last week or a peek at what you're currently working on. This package provides an interactive filter window to the native =org-match-sparse-tree= function, utilising the calendar window from =calendar.el= to help with defining the scope of the filtering query.
+
+
+#+HTML: <img src="https://user-images.githubusercontent.com/20641402/73578038-efebd680-447e-11ea-9ae1-4cb8c692afd9.gif" />
+
+
+** Installation
+
+   #+begin_src elisp
+     (use-package org-treescope
+       :custom (org-treescope-userbuffer "~/path/to/projects.org")
+       :bind (("C-c M-t" . org-treescope)))       
+   #+end_src
+
+** Usage
+
+   Once =org-treescope= is run, a minor mode is launched with the following controls which are designed to not interfere with =calendar-mode=. 
+
+*** Time Range Shift
+
+    | Binding      | Action                                              |
+    |--------------+-----------------------------------------------------|
+    | =left/right=   | Shift current range one day backward / forward      |
+    | =up/down=      | Shift current range one week backward / forward     |
+    | =C-left/right= | Move lowerbound of range one day backward / forward |
+    | =M-left/right= | Move upperbound of range one day backward / forward |
+
+*** Time Range Flank
+
+    | Binding        | Action                                  |
+    |----------------+-----------------------------------------|
+    | =C-M-left/right= | Show all dates before/after centre date |
+    | =C-M-down=       | Reset to range in previous section      |
+
+*** Cycling States
+
+    | Binding   | Action                                                          |
+    |-----------+-----------------------------------------------------------------|
+    | =C-up/down= | Cycle through user-defined groups of =TODO= states                |
+    | =M-up/down= | Cycle through user-defined groups of =PRIORITY= ranges            |
+    | =t=         | Cycle through time modes =TIMESTAMP=, =SCHEDULED=, =DEADLINE=, =CLOSED= |
+
+*** Other
+
+    | Binding | Action                                          |
+    |---------+-------------------------------------------------|
+    | =f=       | Toggle automatic application of query on buffer |
+    | =return=  | Apply current query to buffer                   |
+
+    <small> If your org file is large, there can be some slowdown when making incremental changes to states. Toggling this allows you to set the query string first before applying it with =return=. </small>
+
+
+** Customization
+
+   The user should set the =org-treescope-userbuffer= to a single org-mode file, and also check that the below scope types are set to reasonable ranges for that file.
+
+*** Scope Types
+
+    Currently supported types are =TODO= groups, =PRIORITY= ranges, and =TIMESTAMP= types. Currently these are set to:
+
+    | Type     | Custom Variable              | Current Setting                               | Info                              |
+    |----------+------------------------------+-----------------------------------------------+-----------------------------------|
+    | =TODO=     | =org-treescope-todogroups=     | "DONE", "TODO DOING", "TODO DONE" "WAITING"   | Any number of elements in a group |
+    | =PRIORITY= | =org-treescope-prioritygroups= | 65 68, 65 70, 70 75                           | Only pairs of smaller-larger      |
+    | =TIME=     | =org-treescope-timegroups=     | "TIMESTAMP", "SCHEDULED", "DEADLINE" "CLOSED" | Only one of the four mentioned    |
+
+    These can be customised to specify different groups/pairs that might be more useful to the user.
+
+*** Faces
+
+    The faces used within the calendar can also be customized, and the user should see the =defface= definitions used in the source.
+
+    | Variable                    | Info                                                                                 |
+    |-----------------------------+--------------------------------------------------------------------------------------|
+    | =org-treescope-marker-range=  | The face used to specify all dates within the range except the centre midpoint date. |
+    | =org-treescope-marker-midday= | The face used only by the centre midpoint date.                                      |
+ 
+
