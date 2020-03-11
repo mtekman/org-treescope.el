@@ -33,25 +33,25 @@
 
 (defvar org-treescope-map
   (let ((map (make-sparse-keymap))
-        (list '(([left] . org-treescope-day-shiftrange-backwards)
-                ([right] . org-treescope-day-shiftrange-forwards)
-                ([up] . org-treescope-day-shiftrange-backwards-week)
-                ([down] . org-treescope-day-shiftrange-forwards-week)
-                ([C-left] . org-treescope-day-lowerbound-backwards)
-                ([C-right] . org-treescope-day-lowerbound-forwards)
-                ([M-left] . org-treescope-day-upperbound-backwards)
-                ([M-right] . org-treescope-day-upperbound-forwards)
-                ([C-M-left] . org-treescope-day-frommidpoint-leftwards)
-                ([C-M-right] . org-treescope-day-frommidpoint-rightwards)
-                ([C-M-down] . org-treescope-day-frommidpoint-stop)
-                ([C-up] . org-treescope-cycle-todostates-forwards)
-                ([C-down] . org-treescope-cycle-todostates-backwards)
-                ([M-up] . org-treescope-cycle-prioritystates-forwards)
-                ([M-down] . org-treescope-cycle-prioritystates-backwards)
-                ([return] . org-treescope-apply-to-buffer)
-                ([f] . org-treescope-toggleautoupdate)
-                ([t] . org-treescope-cycletimemode))))
-    (dolist (bindpair list map)
+        (lst '(([left] . org-treescope-day-shiftrange-backwards)
+               ([right] . org-treescope-day-shiftrange-forwards)
+               ([up] . org-treescope-day-shiftrange-backwards-week)
+               ([down] . org-treescope-day-shiftrange-forwards-week)
+               ([C-left] . org-treescope-day-lowerbound-backwards)
+               ([C-right] . org-treescope-day-lowerbound-forwards)
+               ([M-left] . org-treescope-day-upperbound-backwards)
+               ([M-right] . org-treescope-day-upperbound-forwards)
+               ([C-M-left] . org-treescope-day-frommidpoint-leftwards)
+               ([C-M-right] . org-treescope-day-frommidpoint-rightwards)
+               ([C-M-down] . org-treescope-day-frommidpoint-stop)
+               ([C-up] . org-treescope-cycle-todostates-forwards)
+               ([C-down] . org-treescope-cycle-todostates-backwards)
+               ([M-up] . org-treescope-cycle-prioritystates-forwards)
+               ([M-down] . org-treescope-cycle-prioritystates-backwards)
+               ([return] . org-treescope-apply-to-buffer)
+               ([f] . org-treescope-toggleautoupdate)
+               ([t] . org-treescope-cycletimemode))))
+    (dolist (bindpair lst map)
       (define-key map (car bindpair) (cdr bindpair)))))
 
 (define-minor-mode org-treescope-mode
@@ -60,7 +60,13 @@
   :lighter " scope")
 
 (defgroup org-treescope nil
-  "org-treescope customisable variables.")
+  "org-treescope customisable variables."
+  :group 'productivity)
+
+(setq org-treescope-userbuffer "~/repos/org-projects/gtd/projects.org")
+(setq org-treescope-prioritygroups '(nil ("A") ("A" "C") ("D")))
+(setq org-treescope-todogroups '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING")))
+(setq org-treescope-timegroups '(nil "ts" "scheduled" "deadline" "closed"))
 
 (defcustom org-treescope-userbuffer nil
   "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
@@ -80,7 +86,7 @@
   :group 'org-treescope)
 
 (defcustom org-treescope-timegroups
-  '(nil "TIMESTAMP" "SCHEDULED" "DEADLINE" "CLOSED")
+  '(nil "ts" "scheduled" "deadline" "closed")
   "List of time range types.  A value of nil is unbounded to all time."
   :type 'list
   :group 'org-treescope)
@@ -117,16 +123,15 @@
 (defvar org-treescope--day--rightflank nil)
 (defvar org-treescope--day--frommidpoint-select nil "Possible values are `<=` and `>=`.")
 
-(defvar org-treescope--timemode "TIMESTAMP"
+(defvar org-treescope--timemode "ts"
   "Current mode to select on time.
-Valid values are TIMESTAMP, SCHEDULED, DEADLINE, and nil,
+Valid values are `ts', `scheduled', `deadline', (as per `org-ql') and nil,
 where nil means don't select for time at all.")
 
 (defvar org-treescope--state-todogroups nil  "Current state of TODO custom group.")
 (defvar org-treescope--state-prioritygroups nil  "Current state of GROUP custom group.")
 (defvar org-treescope--formatstring nil
-  "The format string argument to pass to `org-match-sparse-tree' and applies to the `org-treescope-buffer'.")
-
+  "The format string argument to pass to `org-ql-sparse-tree' and applies to the `org-treescope-userbuffer'.")
 
 
 ;;;;;;;;;;;;;;; org-treescope-controls.el starts here ;;;;;;;;;;;;;;;
@@ -291,8 +296,8 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
         (day (nth 1 gregdate)))
     (format "%04d-%02d-%02d" year month day)))
 
-(defun org-treescope--update-datestring () ;; construct-format
-  "Update the date string based on current state."
+(defun org-treescope--generate-datestring () ;; construct-format
+  "Generate the date string based on current state."
   (when org-treescope--timemode
     (if org-treescope--day--frommidpoint-select
         (let* ((gregdate-mid (calendar-cursor-to-date))
@@ -369,7 +374,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 ;;;;;;;;;;;;;;; org-treescope.el starts about here ;;;;;;;;;;;;;;;
 ;;;###autoload
 (defun org-treescope-apply-to-buffer (&optional format)
-  "Apply the FORMAT string on the org buffer as an argument to `org-match-sparse-tree'."
+  "Apply the FORMAT string on the org buffer as an argument to `org-ql-sparse-tree'."
   (interactive)
   ;; TODO: a sit-for delay to show this message.
   ;;(message "Applying...")
