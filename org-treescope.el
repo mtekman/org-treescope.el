@@ -46,20 +46,27 @@
     ((kbd "f") . org-treescope-toggleautoupdate)
     ((kbd "t") . org-treescope-cycletimemode)))
 
-;;(setq org-treescope-userbuffer "projects.org")
-(defcustom org-treescope-userbuffer "projects.org"
-  "Apply format string to a specific user-defined buffer.  Cannot be nil otherwise attempts to apply to calendar buffer."
+(setq org-treescope-userbuffer "~/repos/org-projects/gtd/projects.org")
+(defcustom org-treescope-userbuffer nil
+  "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
   :type 'string
   :group 'org-treescope)
 
 (defcustom org-treescope-todogroups
-  '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING") ("CLOSED"))
+  '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING"))
   "List of TODO groups to show in buffer.  A value of nil shows all."
   :type 'list
   :group 'org-treescope)
+
 (defcustom org-treescope-prioritygroups
   '(nil (65 68) (65 70) (70 75))
   "List of PRIORITY ranges (lowest highest) to show in buffer.  A value of nil shows all."
+  :type 'list
+  :group 'org-treescope)
+
+(defcustom org-treescope-timegroups
+  '(nil "TIMESTAMP" "SCHEDULED" "DEADLINE" "CLOSED")
+  "List of time range types.  A value of nil is unbounded to all time."
   :type 'list
   :group 'org-treescope)
 
@@ -362,9 +369,9 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 (defun org-treescope-cycletimemode (&optional silent)
   "Cycle through the time mode selectors, and update the calendar if not SILENT."
   (interactive)
-  (let* ((validmodes '(nil "TIMESTAMP" "SCHEDULED" "DEADLINE"))
+  (let* ((validmodes org-treescope-timegroups)
          (currindex (cl-position org-treescope--timemode validmodes :test 'equal))
-         (nextindex (mod (1+ currindex) 4))
+         (nextindex (mod (1+ currindex) (length validmodes)))
          (nextmode (nth nextindex validmodes)))
     (setq org-treescope--timemode nextmode))
   (unless silent (org-treescope--constructformat)))
@@ -380,7 +387,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   ;; TODO: a sit-for delay to show this message.
   ;;(message "Applying...")
   (let ((formt (if format format org-treescope--formatstring)))
-    (with-current-buffer org-treescope-userbuffer
+    (with-current-buffer (find-file-noselect org-treescope-userbuffer)
       (org-match-sparse-tree nil formt)
       (message formt))))
 
