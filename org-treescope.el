@@ -6,7 +6,7 @@
 ;; URL: https://github.com/mtekman/org-treescope.el
 ;; Keywords: outlines
 ;; Package-Requires: ((emacs "24") (org "9.2.3"))
-;; Version: 0.1
+;; Version: 0.2
 
 ;;; License:
 
@@ -55,6 +55,9 @@
   "Minor Mode to control date ranges, todo and priority states."
   :init-value org-treescope-map
   :lighter " scope")
+
+(defgroup org-treescope nil
+  "org-treescope customizable variables.")
 
 (defcustom org-treescope-userbuffer nil
   "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
