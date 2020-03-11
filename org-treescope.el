@@ -8,6 +8,18 @@
 ;; Package-Requires: ((emacs "24") (org "9.2.3"))
 ;; Version: 0.1
 
+;;; License:
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;;; Commentary:
 
 ;; Navigating through an org file to see what needs to be done
@@ -15,12 +27,6 @@
 ;; This tool provides a time window to analyse your org file.
 
 ;;; Code:
-
-;; Edit -- progn is really not necessary here, but I have no
-;;         idea how to bound multiples
-
-;; TODO:
-;;  * Figure out how to split these into separate files for compiling...
 
 (define-minor-mode org-treescope-mode8
   "Test"
