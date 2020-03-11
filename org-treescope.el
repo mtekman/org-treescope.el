@@ -386,8 +386,9 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   ;;(message "Applying...")
   (let ((formt (if format format org-treescope--formatstring)))
     (with-current-buffer (find-file-noselect org-treescope-userbuffer)
-      (org-match-sparse-tree nil formt)
-      (message formt))))
+      (unless (string= formt "")
+        (org-match-sparse-tree nil formt)
+        (message formt)))))
 
 ;; -- Update method --
 (defun org-treescope--constructformat (&optional silent)
@@ -416,7 +417,6 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
         (if org-treescope--autoupdate-p
             ;; pass format as optional param for speed
             (org-treescope-apply-to-buffer formt))))))
-
 
 (defun org-treescope--update-calendar ()
   "Show and update the calendar to show the left, right, and middle flanks."
