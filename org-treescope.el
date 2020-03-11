@@ -275,9 +275,9 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   "Takes an ABS date and highlight it on the calendar with FACE."
   `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
 
-;; -- Throws lint errors
-(defvar displayed-month 'displayed-month "Internal variable from calendar.el.")
-(defvar displayed-year 'displayed-year "Internal variable from calendar.el.")
+;; -- from calendar.el, redefine here to remove lint and compiler warnings
+(defvar displayed-month)
+(defvar displayed-year)
 
 (defun org-treescope--first-of-lastmonth ()
   "Grab the first day of last month of current calendar window.  Used by `org-treescope--update-calendar'."
