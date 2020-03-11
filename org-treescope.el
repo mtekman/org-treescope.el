@@ -59,8 +59,8 @@
   :group 'org-treescope)
 
 (defcustom org-treescope-prioritygroups
-  '(nil (65 68) (65 70) (70 75))
-  "List of PRIORITY ranges (lowest highest) to show in buffer.  A value of nil shows all."
+  '(nil ("A") ("A" "C") ("D"))
+  "List of PRIORITY groups to show in buffer.  A value of nil shows all."
   :type 'list
   :group 'org-treescope)
 
@@ -395,8 +395,10 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   "Generate the dates, todos, priority strings, and don't update the calendar if SILENT."
   (let ((priority-string
          (if org-treescope--state-prioritygroups
-             (eval `(format "PRIORITY>=%s&PRIORITY<=%s"
-                            ,@org-treescope--state-prioritygroups))))
+             (let* ((string-fmt
+                     (mapconcat 'identity
+                                org-treescope--state-prioritygroups "\\|")))
+               (format "PRIORITY={%s}" string-fmt))))
         (todo-string
          (if org-treescope--state-todogroups
              (let* ((string-fmt
