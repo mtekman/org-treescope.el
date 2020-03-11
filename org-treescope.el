@@ -5,8 +5,8 @@
 ;; Author: Mehmet Tekman
 ;; URL: https://github.com/mtekman/org-treescope.el
 ;; Keywords: outlines
-;; Package-Requires: ((emacs "24") (org "9.2.3"))
-;; Version: 0.2
+;; Package-Requires: ((emacs "24") (org "9.2.3") (org-ql "20200309.2240"))
+;; Version: 0.3
 
 ;;; License:
 
@@ -27,6 +27,9 @@
 ;; This tool provides a time window to analyse your org file.
 
 ;;; Code:
+
+(require 'calendar)
+(require 'org-ql)
 
 (defvar org-treescope-map
   (let ((map (make-sparse-keymap))
@@ -57,7 +60,7 @@
   :lighter " scope")
 
 (defgroup org-treescope nil
-  "org-treescope customizable variables.")
+  "org-treescope customisable variables.")
 
 (defcustom org-treescope-userbuffer nil
   "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
@@ -243,35 +246,9 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   (setq org-treescope--day--frommidpoint-select nil)
   (unless silent (org-treescope--constructformat)))
 
-;; Attempt to macrofy interactive functions, does not save lines
-
-;; (defmacro org-treescope-macro-daybound (islow isfwd)
-;;   "Make interactive functions to move individual flanks, with ISLOW and ISFWD."
-;;   (let ((prefix "org-treescope")
-;;         (boundtype (if islow "lowerbound" "upperbound"))
-;;         (direction (if isfwd "forwards" "backwards"))
-;;         (funcdirec (if isfwd "+" "-"))
-;;         (flank (if isfwd "leftflank" "rightflank")))
-;;     (let ((funcname (intern (format "%s-day-%s-%s" prefix boundtype direction)))
-;;           (funcdocs (format "Move %s by NDAYS %s.  Don't update if SILENT." flank direction))
-;;           (funcflnk (intern (format "%s--shift-flanks" prefix)))
-;;           (funcbody (intern (format "%s--day--%s" prefix flank)))
-;;           (funcdirc (intern funcdirec)))
-;;       `(defun ,funcname (&optional ndays silent)
-;;          ,funcdocs
-;;          (interactive)
-;;          (,funcflnk ,funcbody ,funcdirc)))))
-
-;; (org-treescope-macro-daybound t t) ;; lowerbound forwards
-;; (org-treescope-macro-daybound t nil) ;; lowerbound backwards
-;; (org-treescope-macro-daybound nil t) ;; upperbound forwards
-;; (org-treescope-macro-daybound nil nil) ;; upperbound backwards
-
 ;;;;;;;;;;;;;;; org-treescope-controls.el stops about here ;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;; org-treescope--datehelpers starts here ;;;;;;;;;;;;;;;
-(require 'calendar)
-
 (defvar org-treescope--autoupdate-p t ;; used by toggleautoupdate and construct-format
   "Automatically apply the current format string on every user update.")
 
