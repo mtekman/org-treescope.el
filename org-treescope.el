@@ -28,31 +28,34 @@
 
 ;;; Code:
 
-(define-minor-mode org-treescope-mode8
-  "Test"
-  :init-value nil
-  :lighter " scope"
-  :keymap
-  '(([left] . org-treescope-day-shiftrange-backwards)
-    ([right] . org-treescope-day-shiftrange-forwards)
-    ([up] . org-treescope-day-shiftrange-backwards-week)
-    ([down] . org-treescope-day-shiftrange-forwards-week)
-    ([C-left] . org-treescope-day-lowerbound-backwards)
-    ([C-right] . org-treescope-day-lowerbound-forwards)
-    ([M-left] . org-treescope-day-upperbound-backwards)
-    ([M-right] . org-treescope-day-upperbound-forwards)
-    ([C-M-left] . org-treescope-day-frommidpoint-leftwards)
-    ([C-M-right] . org-treescope-day-frommidpoint-rightwards)
-    ([C-M-down] . org-treescope-day-frommidpoint-stop)
-    ([C-up] . org-treescope-cycle-todostates-forwards)
-    ([C-down] . org-treescope-cycle-todostates-backwards)
-    ([M-up] . org-treescope-cycle-prioritystates-forwards)
-    ([M-down] . org-treescope-cycle-prioritystates-backwards)
-    ([return] . org-treescope-apply-to-buffer)
-    ((kbd "f") . org-treescope-toggleautoupdate)
-    ((kbd "t") . org-treescope-cycletimemode)))
+(defvar org-treescope-map
+  (let ((map (make-sparse-keymap))
+        (list '(([left] . org-treescope-day-shiftrange-backwards)
+                ([right] . org-treescope-day-shiftrange-forwards)
+                ([up] . org-treescope-day-shiftrange-backwards-week)
+                ([down] . org-treescope-day-shiftrange-forwards-week)
+                ([C-left] . org-treescope-day-lowerbound-backwards)
+                ([C-right] . org-treescope-day-lowerbound-forwards)
+                ([M-left] . org-treescope-day-upperbound-backwards)
+                ([M-right] . org-treescope-day-upperbound-forwards)
+                ([C-M-left] . org-treescope-day-frommidpoint-leftwards)
+                ([C-M-right] . org-treescope-day-frommidpoint-rightwards)
+                ([C-M-down] . org-treescope-day-frommidpoint-stop)
+                ([C-up] . org-treescope-cycle-todostates-forwards)
+                ([C-down] . org-treescope-cycle-todostates-backwards)
+                ([M-up] . org-treescope-cycle-prioritystates-forwards)
+                ([M-down] . org-treescope-cycle-prioritystates-backwards)
+                ([return] . org-treescope-apply-to-buffer)
+                ([f] . org-treescope-toggleautoupdate)
+                ([t] . org-treescope-cycletimemode))))
+    (dolist (bindpair list map)
+      (define-key map (car bindpair) (cdr bindpair)))))
 
-(setq org-treescope-userbuffer "~/repos/org-projects/gtd/projects.org")
+(define-minor-mode org-treescope-mode
+  "Minor Mode to control date ranges, todo and priority states."
+  :init-value org-treescope-map
+  :lighter " scope")
+
 (defcustom org-treescope-userbuffer nil
   "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
   :type 'string
@@ -432,7 +435,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   (unless (member "*Calendar*"
                   (--map (buffer-name (window-buffer it)) (window-list)))
     (calendar))
-  (org-treescope-mode8 t)
+  (org-treescope-mode t)
   (calendar-unmark)
   (when org-treescope--timemode
     (let ((mid (org-treescope--getmidpoint-abs))
