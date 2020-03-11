@@ -107,7 +107,6 @@
 Valid values are TIMESTAMP, SCHEDULED, DEADLINE, and nil,
 where nil means don't select for time at all.")
 
-
 (defvar org-treescope--state-todogroups nil  "Current state of TODO custom group.")
 (defvar org-treescope--state-prioritygroups nil  "Current state of GROUP custom group.")
 (defvar org-treescope--formatstring nil
@@ -223,7 +222,6 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays nil))
-    (ignore ndays) ;; used by macro
     (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ">="))))
 
 ;;;###autoload
