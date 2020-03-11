@@ -179,7 +179,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   ;;       - does not seem to be related to the sensible-values mid 3 thing
   (org-treescope-day-shiftrange-forwards 3 t)
   (org-treescope-day-shiftrange-forwards 3 t)
-  (org-treescope-day-shiftrange-forwards 1 t))
+  (org-treescope-day-shiftrange-forwards 1 nil))
 
 ;;;###autoload
 (defun org-treescope-day-shiftrange-forwards (&optional ndays silent)
@@ -476,7 +476,6 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
         org-treescope--day--frommidpoint-select nil)
   (org-treescope--sensible-values)
   (org-treescope--constructformat))
-
 
 (provide 'org-treescope)
 ;;;;;;;;;;;;;;; org-treescope.el starts about here ;;;;;;;;;;;;;;;
