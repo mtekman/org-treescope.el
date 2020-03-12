@@ -29,6 +29,9 @@
 ;;; Code:
 
 (require 'calendar)
+;; NOTE TO REVIEWER: calendar.el is not a lexically-bound library, does
+;;                    this mean I shouldn't add lexical-binding to mine?
+
 (require 'org-ql)
 
 ;;(defvar
@@ -70,7 +73,8 @@
 (setq org-treescope-userbuffer "~/repos/org-projects/gtd/projects.org")
 (setq org-treescope-prioritygroups '(nil ("A") ("A" "C") ("D")))
 (setq org-treescope-todogroups '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING")))
-(setq org-treescope-timegroups '(nil "ts" "scheduled" "deadline" "closed"))
+(setq org-treescope-timegroups '(nil ts scheduled deadline closed))
+;; users can set ts-i ts-i clocked planning
 
 (defcustom org-treescope-userbuffer nil
   "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
@@ -90,7 +94,7 @@
   :group 'org-treescope)
 
 (defcustom org-treescope-timegroups
-  '(nil "ts" "scheduled" "deadline" "closed")
+  '(nil ts ts-a ts-i scheduled deadline closed)
   "List of time range types.  A value of nil is unbounded to all time."
   :type 'list
   :group 'org-treescope)
@@ -127,7 +131,7 @@
 (defvar org-treescope--day--rightflank nil)
 (defvar org-treescope--day--frommidpoint-select nil "Possible values are `:to` and `:from`.")
 
-(defvar org-treescope--timemode "ts"
+(defvar org-treescope--timemode 'ts
   "Current mode to select on time.
 Valid values are `ts', `scheduled', `deadline', (as per `org-ql') and nil,
 where nil means don't select for time at all.")
@@ -158,7 +162,7 @@ where nil means don't select for time at all.")
      ,@innercode
      (unless silent
        (org-treescope--sensible-values)
-       (org-treescope--constructformat))))
+       (org-treescope-apply-to-buffer))))
 
 (defmacro org-treescope--shift-ranges (direction lowerb upperb)
   "Call the LOWERB and UPPERB (low/up bounds) in DIRECTION.
@@ -239,14 +243,14 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   "Ignore left and right flanks, and select all dates before midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays nil))
-    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ":to"))))
+    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select :to))))
 
 ;;;###autoload
 (defun org-treescope-day-frommidpoint-rightwards (&optional silent)
   "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays nil))
-    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ":from"))))
+    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select :from))))
 
 ;;;###autoload
 (defun org-treescope-day-frommidpoint-stop (&optional silent)
@@ -307,21 +311,13 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
         (let* ((gregdate-mid (calendar-cursor-to-date))
                (strdate-mid (org-treescope--datetostring gregdate-mid)))
           ;; e.g. :to<2020-12-02> or :from<2019-01-31>
-          (format "(%s %s \"%s\")"
-                  org-treescope--timemode
-                  org-treescope--day--frommidpoint-select
-                  strdate-mid))
+          `(,org-treescope--timemode ,org-treescope--day--frommidpoint-select ,strdate-mid))
       ;; Otherwise set a date range.
       (let ((gregdate-left  (calendar-gregorian-from-absolute org-treescope--day--leftflank))
             (gregdate-right (calendar-gregorian-from-absolute org-treescope--day--rightflank)))
         (let ((strdate-left (org-treescope--datetostring gregdate-left))
               (strdate-right (org-treescope--datetostring gregdate-right)))
-          (format "(%s :from \"%s\" :to \"%s\")"
-                  org-treescope--timemode
-                  strdate-left
-                  strdate-right))))))
-
-
+          `(,org-treescope--timemode :from ,strdate-left :to ,strdate-right))))))
 ;;;;;;;;;;;;;;; org-treescope-datehelpers.el stops about here ;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;; org-treescope-todosandpriority starts about here ;;;;;;;;;;;;;;;
@@ -398,12 +394,9 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   (interactive)
   ;; TODO: a sit-for delay to show this message.
   ;;(message "Applying...")
-  (let ((formt (if format format org-treescope--formatstring)))
+  (org-treescope--redraw-calendar)
+  (let ((formt (if format format (org-treescope--constructformat))))
     (with-current-buffer (find-file-noselect org-treescope-userbuffer)
-      (unless (string= formt "")
-        ;;(org-ql-sparse-tree formt)
-        (message formt)))))
-
       (when formt
         ;; FIXME: save-excursion does not work here....
         (org-ql-sparse-tree formt)
@@ -431,8 +424,8 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
           (lonm (calendar-absolute-from-gregorian (org-treescope--last-of-nextmonth))))
       (if sel
           ;; If a flank, redefine the flanking limits
-          (cond ((string= sel ":from") (setq rfl lonm lfl mid))
-                ((string= sel ":to") (setq lfl folm rfl mid))))
+          (cond ((eq sel :from) (setq rfl lonm lfl mid))
+                ((eq sel :to) (setq lfl folm rfl mid))))
       ;; Now colour the defined range.
       (dolist (absdate (number-sequence lfl rfl))
         (let ((visiblep (<= folm absdate lonm))
