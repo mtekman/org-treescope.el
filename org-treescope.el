@@ -31,33 +31,38 @@
 (require 'calendar)
 (require 'org-ql)
 
-(defvar org-treescope-map
-  (let ((map (make-sparse-keymap))
-        (lst '(([left] . org-treescope-day-shiftrange-backwards)
-               ([right] . org-treescope-day-shiftrange-forwards)
-               ([up] . org-treescope-day-shiftrange-backwards-week)
-               ([down] . org-treescope-day-shiftrange-forwards-week)
-               ([C-left] . org-treescope-day-lowerbound-backwards)
-               ([C-right] . org-treescope-day-lowerbound-forwards)
-               ([M-left] . org-treescope-day-upperbound-backwards)
-               ([M-right] . org-treescope-day-upperbound-forwards)
-               ([C-M-left] . org-treescope-day-frommidpoint-leftwards)
-               ([C-M-right] . org-treescope-day-frommidpoint-rightwards)
-               ([C-M-down] . org-treescope-day-frommidpoint-stop)
-               ([C-up] . org-treescope-cycle-todostates-forwards)
-               ([C-down] . org-treescope-cycle-todostates-backwards)
-               ([M-up] . org-treescope-cycle-prioritystates-forwards)
-               ([M-down] . org-treescope-cycle-prioritystates-backwards)
-               ([return] . org-treescope-apply-to-buffer)
-               ([f] . org-treescope-toggleautoupdate)
-               ([t] . org-treescope-cycletimemode))))
-    (dolist (bindpair lst map)
-      (define-key map (car bindpair) (cdr bindpair)))))
+;;(defvar
+(setq org-treescope-mode-map
+      (let ((map (make-sparse-keymap))
+            (lst '(("<left>" . org-treescope-day-shiftrange-backwards)
+                   ("<right>" . org-treescope-day-shiftrange-forwards)
+                   ("<up>" . org-treescope-day-shiftrange-backwards-week)
+                   ("<down>" . org-treescope-day-shiftrange-forwards-week)
+                   ("C-<left>" . org-treescope-day-lowerbound-backwards)
+                   ("C-<right>" . org-treescope-day-lowerbound-forwards)
+                   ("M-<left>" . org-treescope-day-upperbound-backwards)
+                   ("M-<right>" . org-treescope-day-upperbound-forwards)
+                   ("C-M-<left>" . org-treescope-day-frommidpoint-leftwards)
+                   ("C-M-<right>" . org-treescope-day-frommidpoint-rightwards)
+                   ("C-M-<down>" . org-treescope-day-frommidpoint-stop)
+                   ("C-<up>" . org-treescope-cycle-todostates-forwards)
+                   ("C-<down>" . org-treescope-cycle-todostates-backwards)
+                   ("M-<up>" . org-treescope-cycle-prioritystates-forwards)
+                   ("M-<down>" . org-treescope-cycle-prioritystates-backwards)
+                   ("<return>" . org-treescope-apply-to-buffer)
+                   ("f" . org-treescope-toggleautoupdate)
+                   ("t" . org-treescope-cycletimemode))))
+        (set-keymap-parent map calendar-mode-map)
+        (dolist (keypair lst map)
+          (define-key map (kbd (car keypair)) (cdr keypair)))))
+;;"Keymap for function `org-treescope-mode'.")
 
-(define-minor-mode org-treescope-mode
+
+(define-minor-mode org-treescope-mode8
   "Minor Mode to control date ranges, todo and priority states."
-  :init-value org-treescope-map
-  :lighter " scope")
+  nil
+  " scope"
+  org-treescope-mode-map)
 
 (defgroup org-treescope nil
   "org-treescope customisable variables."
@@ -121,7 +126,7 @@
 
 (defvar org-treescope--day--leftflank nil)
 (defvar org-treescope--day--rightflank nil)
-(defvar org-treescope--day--frommidpoint-select nil "Possible values are `<=` and `>=`.")
+(defvar org-treescope--day--frommidpoint-select nil "Possible values are `:to` and `:from`.")
 
 (defvar org-treescope--timemode "ts"
   "Current mode to select on time.
@@ -235,14 +240,14 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   "Ignore left and right flanks, and select all dates before midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays nil))
-    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select "<="))))
+    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ":to"))))
 
 ;;;###autoload
 (defun org-treescope-day-frommidpoint-rightwards (&optional silent)
   "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays nil))
-    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ">="))))
+    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select ":from"))))
 
 ;;;###autoload
 (defun org-treescope-day-frommidpoint-stop (&optional silent)
@@ -302,8 +307,8 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
     (if org-treescope--day--frommidpoint-select
         (let* ((gregdate-mid (calendar-cursor-to-date))
                (strdate-mid (org-treescope--datetostring gregdate-mid)))
-          ;; e.g. <=<2020-12-02> or >=<2019-01-31>
-          (format "%s%s\"<%s>\""
+          ;; e.g. :to<2020-12-02> or :from<2019-01-31>
+          (format "(%s %s \"%s\")"
                   org-treescope--timemode
                   org-treescope--day--frommidpoint-select
                   strdate-mid))
@@ -312,10 +317,9 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
             (gregdate-right (calendar-gregorian-from-absolute org-treescope--day--rightflank)))
         (let ((strdate-left (org-treescope--datetostring gregdate-left))
               (strdate-right (org-treescope--datetostring gregdate-right)))
-          (format "%s>=\"<%s>\"&%s<=\"<%s>\""
+          (format "(%s :from \"%s\" :to \"%s\")"
                   org-treescope--timemode
                   strdate-left
-                  org-treescope--timemode
                   strdate-right))))))
 
 
@@ -381,7 +385,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   (let ((formt (if format format org-treescope--formatstring)))
     (with-current-buffer (find-file-noselect org-treescope-userbuffer)
       (unless (string= formt "")
-        (org-match-sparse-tree nil formt)
+        ;;(org-ql-sparse-tree formt)
         (message formt)))))
 
 ;; -- Update method --
@@ -389,24 +393,21 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   "Generate the dates, todos, priority strings, and don't update the calendar if SILENT."
   (let ((priority-string
          (if org-treescope--state-prioritygroups
-             (let* ((string-fmt
-                     (mapconcat 'identity
-                                org-treescope--state-prioritygroups "\\|")))
-               (format "PRIORITY={%s}" string-fmt))))
+             (format "(priority %s)" (mapconcat (lambda (x) (format "\"%s\"" x)) org-treescope--state-prioritygroups " "))))
         (todo-string
          (if org-treescope--state-todogroups
-             (let* ((string-fmt
-                     (mapconcat 'identity
-                                org-treescope--state-todogroups "\\|")))
-               (format "TODO={%s}" string-fmt))))
-        (date-string (org-treescope--update-datestring)))
+             (format "(todo %s)" (mapconcat (lambda (x) (format "\"%s\"" x)) org-treescope--state-todogroups " "))))
+        (date-string (org-treescope--generate-datestring)))
     (setq org-treescope--formatstring nil)  ; reset format string
     ;;
     (unless silent (org-treescope--update-calendar))
     ;;
     (let* ((slist `(,date-string ,todo-string ,priority-string))
            (mlist (--filter (if it it) slist))
-           (formt (mapconcat 'identity mlist "&"))) ;; TODO: Become a + for priority
+           (rlist (mapconcat 'identity mlist " "))
+           (formt (if (eq 1 (length mlist))
+                      (format "%s" rlist)
+                    (format "(and %s)" rlist))))
       (when formt
         (message "%s%s" formt (if org-treescope--autoupdate-p "  [Auto]" ""))
         (setq org-treescope--formatstring formt)
@@ -420,7 +421,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   (unless (member "*Calendar*"
                   (--map (buffer-name (window-buffer it)) (window-list)))
     (calendar))
-  (org-treescope-mode t)
+  (org-treescope-mode8 t)
   (calendar-unmark)
   (when org-treescope--timemode
     (let ((mid (org-treescope--getmidpoint-abs))
@@ -432,8 +433,8 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
           (lonm (calendar-absolute-from-gregorian (org-treescope--last-of-nextmonth))))
       (if sel
           ;; If a flank, redefine the flanking limits
-          (cond ((string= sel ">=") (setq rfl lonm lfl mid))
-                ((string= sel "<=") (setq lfl folm rfl mid))))
+          (cond ((string= sel ":from") (setq rfl lonm lfl mid))
+                ((string= sel ":to") (setq lfl folm rfl mid))))
       ;; Now colour the defined range.
       (dolist (absdate (number-sequence lfl rfl))
         (let ((visiblep (<= folm absdate lonm))
