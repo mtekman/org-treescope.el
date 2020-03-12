@@ -5,7 +5,7 @@
 ;; Author: Mehmet Tekman
 ;; URL: https://github.com/mtekman/org-treescope.el
 ;; Keywords: outlines
-;; Package-Requires: ((emacs "24") (org "9.2.3") (org-ql "20200309.2240"))
+;; Package-Requires: ((emacs "24") (org "9.2.3") (org-ql "0.5-pre"))
 ;; Version: 0.3
 
 ;;; License:
@@ -30,7 +30,7 @@
 
 (require 'calendar)
 ;; NOTE TO REVIEWER: calendar.el is not a lexically-bound library, does
-;;                    this mean I shouldn't add lexical-binding to mine?
+;;                   this mean I shouldn't add lexical-binding to mine?
 
 (require 'org-ql)
 
@@ -129,7 +129,7 @@
 
 (defvar org-treescope--day--leftflank nil)
 (defvar org-treescope--day--rightflank nil)
-(defvar org-treescope--day--frommidpoint-select nil "Possible values are `:to` and `:from`.")
+(defvar org-treescope--day--frommidpoint-select nil "Possible values are `:to' and `:from'.")
 
 (defvar org-treescope--timemode 'ts
   "Current mode to select on time.
@@ -204,6 +204,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   ;; FIXME: why doesn't (org-treescope-day-shiftrange-forwards 7 t) work reliably?
   ;;       - it seems any number over 3 does not jump to where it should,
   ;;       - does not seem to be related to the sensible-values mid 3 thing
+  ;;       - it seems like the calendar cursor is not set properly
   (org-treescope-day-shiftrange-forwards 3 t)
   (org-treescope-day-shiftrange-forwards 3 t)
   (org-treescope-day-shiftrange-forwards 1 nil))
@@ -258,7 +259,6 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   (interactive)
   (setq org-treescope--day--frommidpoint-select nil)
   (unless silent (org-treescope-apply-to-buffer)))
-
 ;;;;;;;;;;;;;;; org-treescope-controls.el stops about here ;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;; org-treescope--datehelpers starts here ;;;;;;;;;;;;;;;
@@ -424,8 +424,10 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
           (lonm (calendar-absolute-from-gregorian (org-treescope--last-of-nextmonth))))
       (if sel
           ;; If a flank, redefine the flanking limits
-          (cond ((eq sel :from) (setq rfl lonm lfl mid))
-                ((eq sel :to) (setq lfl folm rfl mid))))
+          (cond ((eq sel :from) (setq rfl lonm
+                                      lfl mid))
+                ((eq sel :to) (setq lfl folm
+                                    rfl mid))))
       ;; Now colour the defined range.
       (dolist (absdate (number-sequence lfl rfl))
         (let ((visiblep (<= folm absdate lonm))
@@ -464,5 +466,4 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   (org-treescope-apply-to-buffer))
 
 (provide 'org-treescope)
-
 ;;; org-treescope.el ends here
