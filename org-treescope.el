@@ -375,6 +375,23 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 
 
 ;;;;;;;;;;;;;;; org-treescope.el starts about here ;;;;;;;;;;;;;;;
+(defun org-treescope--constructformat ()
+  "Generate the dates, todos, priority strings."
+  (let ((priority-symbol
+         (if org-treescope--state-prioritygroups
+             `(priority ,@org-treescope--state-prioritygroups)))
+        (todo-symbol
+         (if org-treescope--state-todogroups
+             `(todo ,@org-treescope--state-todogroups)))
+        (date-symbol (org-treescope--generate-datestring)))
+    ;; -- Construct a sensible format
+    (let* ((slist `(,date-symbol ,todo-symbol ,priority-symbol))
+           (mlist (--filter (if it it) slist)))
+      (if mlist
+          (if (eq 1 (length mlist))
+              (car mlist)
+            `(and ,@mlist))))))
+
 ;;;###autoload
 (defun org-treescope-apply-to-buffer (&optional format)
   "Apply the FORMAT string on the org buffer as an argument to `org-ql-sparse-tree'."
@@ -387,32 +404,11 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
         ;;(org-ql-sparse-tree formt)
         (message formt)))))
 
-;; -- Update method --
-(defun org-treescope--constructformat (&optional silent)
-  "Generate the dates, todos, priority strings, and don't update the calendar if SILENT."
-  (let ((priority-string
-         (if org-treescope--state-prioritygroups
-             (format "(priority %s)" (mapconcat (lambda (x) (format "\"%s\"" x)) org-treescope--state-prioritygroups " "))))
-        (todo-string
-         (if org-treescope--state-todogroups
-             (format "(todo %s)" (mapconcat (lambda (x) (format "\"%s\"" x)) org-treescope--state-todogroups " "))))
-        (date-string (org-treescope--generate-datestring)))
-    (setq org-treescope--formatstring nil)  ; reset format string
-    ;;
-    (unless silent (org-treescope--update-calendar))
-    ;;
-    (let* ((slist `(,date-string ,todo-string ,priority-string))
-           (mlist (--filter (if it it) slist))
-           (rlist (mapconcat 'identity mlist " "))
-           (formt (if (eq 1 (length mlist))
-                      (format "%s" rlist)
-                    (format "(and %s)" rlist))))
       (when formt
-        (message "%s%s" formt (if org-treescope--autoupdate-p "  [Auto]" ""))
-        (setq org-treescope--formatstring formt)
-        (if org-treescope--autoupdate-p
-            ;; pass format as optional param for speed
-            (org-treescope-apply-to-buffer formt))))))
+        ;; FIXME: save-excursion does not work here....
+        (org-ql-sparse-tree formt)
+        (message (format "%s" formt))
+        (goto-char 0)))))
 
 
 (defun org-treescope--redraw-calendar ()
