@@ -147,7 +147,7 @@ where nil means don't select for time at all.")
      (ignore err)
      (calendar-current-date))))
 
-(defsubst org-treescope--getmidpoint-abs () ;; called by sensible-values and update-calendar
+(defsubst org-treescope--getmidpoint-abs () ;; called by sensible-values and redraw-calendar
   "Inline substitution to retrieve the current mid point in epochs."
   (calendar-absolute-from-gregorian (org-treescope--getmidpoint)))
 
@@ -253,7 +253,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   "Set the flank selector to nothing and restore shift range mode.  Don't update if SILENT."
   (interactive)
   (setq org-treescope--day--frommidpoint-select nil)
-  (unless silent (org-treescope--constructformat)))
+  (unless silent (org-treescope-apply-to-buffer)))
 
 ;;;;;;;;;;;;;;; org-treescope-controls.el stops about here ;;;;;;;;;;;;;;;
 
@@ -267,7 +267,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   (interactive)
   (setq org-treescope--autoupdate-p (not org-treescope--autoupdate-p)))
 
-(defmacro org-treescope--markdate (abs face) ;; update-calendar
+(defmacro org-treescope--markdate (abs face) ;; redraw-calendar
   "Takes an ABS date and highlight it on the calendar with FACE."
   `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
 
@@ -276,7 +276,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 (defvar displayed-year)
 
 (defun org-treescope--first-of-lastmonth ()
-  "Grab the first day of last month of current calendar window.  Used by `org-treescope--update-calendar'."
+  "Grab the first day of last month of current calendar window.  Used by `org-treescope--redraw-calendar'."
   (let* ((mont displayed-month)
          (year displayed-year)
          (newm (- mont 1)))
@@ -285,7 +285,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
       (list 12 1 (- year 1)))))
 
 (defun org-treescope--last-of-nextmonth ()
-  "Grab the last day of next month of current calendar window.  Used by `org-treescope--update-calendar'."
+  "Grab the last day of next month of current calendar window.  Used by `org-treescope--redraw-calendar'."
   (let* ((mont displayed-month)
          (year displayed-year)
          (newm (+ mont 1)))
@@ -294,7 +294,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
       (list newm (calendar-last-day-of-month newm year) year))))
 
 (defsubst org-treescope--datetostring (gregdate)
-  "Convert GREGDATE to an org compatible date.  Used by `org-treescope--update-calendar'."
+  "Convert GREGDATE to an org compatible date.  Used by `org-treescope--redraw-calendar'."
   (let ((year (nth 2 gregdate))
         (month (nth 0 gregdate))
         (day (nth 1 gregdate)))
@@ -331,7 +331,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
           (nxt-index (mod (,direction now-index 1) (length ,statelist)))
           (nxt-state (nth nxt-index ,statelist)))
      (setq ,statecurrent nxt-state)
-     (org-treescope--constructformat t)))
+     (org-treescope-apply-to-buffer)))
 
 ;; Todo
 ;;;###autoload
@@ -369,7 +369,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
          (nextindex (mod (1+ currindex) (length validmodes)))
          (nextmode (nth nextindex validmodes)))
     (setq org-treescope--timemode nextmode))
-  (unless silent (org-treescope--constructformat)))
+  (unless silent (org-treescope-apply-to-buffer)))
 
 ;;;;;;;;;;;;;;; org-treescope-todosandpriority.el ends about here ;;;;;;;;;;;;;;;
 
@@ -414,13 +414,16 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
             ;; pass format as optional param for speed
             (org-treescope-apply-to-buffer formt))))))
 
-(defun org-treescope--update-calendar ()
+
+(defun org-treescope--redraw-calendar ()
   "Show and update the calendar to show the left, right, and middle flanks."
   ;; if calendar not open
-  (unless (member "*Calendar*"
-                  (--map (buffer-name (window-buffer it)) (window-list)))
+  (unless (member
+           "*Calendar*"
+           (--map (buffer-name (window-buffer it)) (window-list)))
     (calendar))
   (org-treescope-mode8 t)
+  ;; perform drawing operations
   (calendar-unmark)
   (when org-treescope--timemode
     (let ((mid (org-treescope--getmidpoint-abs))
@@ -469,9 +472,8 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
         org-treescope--day--rightflank nil
         org-treescope--day--frommidpoint-select nil)
   (org-treescope--sensible-values)
-  (org-treescope--constructformat))
+  (org-treescope-apply-to-buffer))
 
 (provide 'org-treescope)
-;;;;;;;;;;;;;;; org-treescope.el starts about here ;;;;;;;;;;;;;;;
 
 ;;; org-treescope.el ends here
