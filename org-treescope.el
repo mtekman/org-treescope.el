@@ -240,18 +240,18 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
   (org-treescope--shift-flanks org-treescope--day--rightflank -))
 
 ;;;###autoload
-(defun org-treescope-day-frommidpoint-leftwards (&optional silent)
-  "Ignore left and right flanks, and select all dates before midpoint.  Don't update if SILENT."
+(defun org-treescope-day-frommidpoint-leftwards (&optional ndays silent)
+  "Ignore left and right flanks, and select all dates before midpoint.
+Don't update if SILENT.  NDAYS exists for macro purposes."
   (interactive)
-  (let ((ndays nil))
-    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select :to))))
+  (org-treescope--defaults-and-updates (ignore ndays) (setq org-treescope--day--frommidpoint-select :to)))
 
 ;;;###autoload
-(defun org-treescope-day-frommidpoint-rightwards (&optional silent)
-  "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
+(defun org-treescope-day-frommidpoint-rightwards (&optional ndays silent)
+  "Ignore left and right flanks, and select all dates after midpoint.
+Don't update if SILENT.  NDAYS exists for macro purposes."
   (interactive)
-  (let ((ndays nil))
-    (org-treescope--defaults-and-updates (setq org-treescope--day--frommidpoint-select :from))))
+  (org-treescope--defaults-and-updates (ignore ndays) (setq org-treescope--day--frommidpoint-select :from)))
 
 ;;;###autoload
 (defun org-treescope-day-frommidpoint-stop (&optional silent)
