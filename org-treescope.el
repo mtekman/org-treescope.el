@@ -31,7 +31,6 @@
 (require 'calendar)
 ;; NOTE TO REVIEWER: calendar.el is not a lexically-bound library, does
 ;;                   this mean I shouldn't add lexical-binding to mine?
-
 (require 'org-ql)
 
 ;;(defvar
@@ -52,8 +51,6 @@
                    ("C-<down>" . org-treescope-cycle-todostates-backwards)
                    ("M-<up>" . org-treescope-cycle-prioritystates-forwards)
                    ("M-<down>" . org-treescope-cycle-prioritystates-backwards)
-                   ("<return>" . org-treescope-apply-to-buffer)
-                   ("f" . org-treescope-toggleautoupdate)
                    ("t" . org-treescope-cycle-timestates-forwards))))
         (set-keymap-parent map calendar-mode-map)
         (dolist (keypair lst map)
@@ -262,15 +259,6 @@ Don't update if SILENT.  NDAYS exists for macro purposes."
 ;;;;;;;;;;;;;;; org-treescope-controls.el stops about here ;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;; org-treescope--datehelpers starts here ;;;;;;;;;;;;;;;
-(defvar org-treescope--autoupdate-p t ;; used by toggleautoupdate and construct-format
-  "Automatically apply the current format string on every user update.")
-
-;;;###autoload
-(defun org-treescope-toggleautoupdate ()
-  "Toggle the auto-update capability for every user-action."
-  (interactive)
-  (setq org-treescope--autoupdate-p (not org-treescope--autoupdate-p)))
-
 (defmacro org-treescope--markdate (abs face) ;; redraw-calendar
   "Takes an ABS date and highlight it on the calendar with FACE."
   `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
