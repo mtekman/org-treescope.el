@@ -33,31 +33,30 @@
 ;;                   this mean I shouldn't add lexical-binding to mine?
 (require 'org-ql)
 
-;;(defvar
-(setq org-treescope-mode-map
-      (let ((map (make-sparse-keymap))
-            (lst '(("<left>" . org-treescope-day-shiftrange-backwards)
-                   ("<right>" . org-treescope-day-shiftrange-forwards)
-                   ("<up>" . org-treescope-day-shiftrange-backwards-week)
-                   ("<down>" . org-treescope-day-shiftrange-forwards-week)
-                   ("C-<left>" . org-treescope-day-lowerbound-backwards)
-                   ("C-<right>" . org-treescope-day-lowerbound-forwards)
-                   ("M-<left>" . org-treescope-day-upperbound-backwards)
-                   ("M-<right>" . org-treescope-day-upperbound-forwards)
-                   ("C-M-<left>" . org-treescope-day-frommidpoint-leftwards)
-                   ("C-M-<right>" . org-treescope-day-frommidpoint-rightwards)
-                   ("C-M-<down>" . org-treescope-day-frommidpoint-stop)
-                   ("C-<up>" . org-treescope-cycle-todostates-forwards)
-                   ("C-<down>" . org-treescope-cycle-todostates-backwards)
-                   ("M-<up>" . org-treescope-cycle-prioritystates-forwards)
-                   ("M-<down>" . org-treescope-cycle-prioritystates-backwards)
-                   ("t" . org-treescope-cycle-timestates-forwards))))
-        (set-keymap-parent map calendar-mode-map)
-        (dolist (keypair lst map)
-          (define-key map (kbd (car keypair)) (cdr keypair)))))
-;;"Keymap for function `org-treescope-mode'.")
+(defvar org-treescope-mode-map
+  (let ((map (make-sparse-keymap))
+        (lst '(("<left>" . org-treescope-day-shiftrange-backwards)
+               ("<right>" . org-treescope-day-shiftrange-forwards)
+               ("<up>" . org-treescope-day-shiftrange-backwards-week)
+               ("<down>" . org-treescope-day-shiftrange-forwards-week)
+               ("C-<left>" . org-treescope-day-lowerbound-backwards)
+               ("C-<right>" . org-treescope-day-lowerbound-forwards)
+               ("M-<left>" . org-treescope-day-upperbound-backwards)
+               ("M-<right>" . org-treescope-day-upperbound-forwards)
+               ("C-M-<left>" . org-treescope-day-frommidpoint-leftwards)
+               ("C-M-<right>" . org-treescope-day-frommidpoint-rightwards)
+               ("C-M-<down>" . org-treescope-day-frommidpoint-stop)
+               ("C-<up>" . org-treescope-cycle-todostates-forwards)
+               ("C-<down>" . org-treescope-cycle-todostates-backwards)
+               ("M-<up>" . org-treescope-cycle-prioritystates-forwards)
+               ("M-<down>" . org-treescope-cycle-prioritystates-backwards)
+               ("t" . org-treescope-cycle-timestates-forwards))))
+    (set-keymap-parent map calendar-mode-map)
+    (dolist (keypair lst map)
+      (define-key map (kbd (car keypair)) (cdr keypair))))
+  "Keymap for function `org-treescope-mode'.")
 
-(define-minor-mode org-treescope-mode8
+(define-minor-mode org-treescope-mode
   "Minor Mode to control date ranges, todo and priority states."
   nil
   " scope"
@@ -66,12 +65,6 @@
 (defgroup org-treescope nil
   "org-treescope customisable variables."
   :group 'productivity)
-
-(setq org-treescope-userbuffer "~/repos/org-projects/gtd/projects.org")
-(setq org-treescope-prioritygroups '(nil ("A") ("A" "C") ("D")))
-(setq org-treescope-todogroups '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING")))
-(setq org-treescope-timegroups '(nil ts scheduled deadline closed))
-;; users can set ts-i ts-i clocked planning
 
 (defcustom org-treescope-userbuffer nil
   "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
@@ -399,7 +392,7 @@ Don't update if SILENT.  NDAYS exists for macro purposes."
            "*Calendar*"
            (--map (buffer-name (window-buffer it)) (window-list)))
     (calendar))
-  (org-treescope-mode8 t)
+  (org-treescope-mode t)
   ;; perform drawing operations
   (calendar-unmark)
   (when org-treescope--timemode
@@ -441,7 +434,6 @@ Don't update if SILENT.  NDAYS exists for macro purposes."
   (if (< org-treescope--day--rightflank org-treescope--day--leftflank)
       (setq org-treescope--day--leftflank
             (- org-treescope--day--rightflank 1))))
-  ;; TODO: Add clauses for what the midpoint is doing
 
 ;;;###autoload
 (defun org-treescope ()
