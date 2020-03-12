@@ -51,12 +51,11 @@
                    ("M-<down>" . org-treescope-cycle-prioritystates-backwards)
                    ("<return>" . org-treescope-apply-to-buffer)
                    ("f" . org-treescope-toggleautoupdate)
-                   ("t" . org-treescope-cycletimemode))))
+                   ("t" . org-treescope-cycle-timestates-forwards))))
         (set-keymap-parent map calendar-mode-map)
         (dolist (keypair lst map)
           (define-key map (kbd (car keypair)) (cdr keypair)))))
 ;;"Keymap for function `org-treescope-mode'.")
-
 
 (define-minor-mode org-treescope-mode8
   "Minor Mode to control date ranges, todo and priority states."
@@ -362,7 +361,7 @@ Reset the `org-treescope--day--frommidpoint-select' to nil."
 
 ;; Time
 ;;;###autoload
-(defun org-treescope-cycletimemode (&optional silent)
+(defun org-treescope-cycle-timestates-forwards (&optional silent)
   "Cycle through the time mode selectors, and update the calendar if not SILENT."
   (interactive)
   (let* ((validmodes org-treescope-timegroups)
