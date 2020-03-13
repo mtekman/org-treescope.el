@@ -25,8 +25,6 @@
 ;; see org-treescope.el
 
 ;;; Code:
-(require 'org-treescope-query)
-
 (defcustom org-treescope-cyclestates-todo
   '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING"))
   "List of TODO groups to show in buffer.  A value of nil shows all."
@@ -56,46 +54,34 @@ where nil means don't select for time at all.")
   `(let* ((now-index (or (cl-position ,statecurrent ,statelist :test 'equal) 0))
           (nxt-index (mod (,direction now-index 1) (length ,statelist)))
           (nxt-state (nth nxt-index ,statelist)))
-     (setq ,statecurrent nxt-state)
-     (org-treescope-query-apply-to-buffer)))
+     (setq ,statecurrent nxt-state)))
 
 ;; -- Todos --
-;;;###autoload
-(defun org-treescope-cyclestates-todo-forwards ()
+(defun org-treescope-cyclestates--todo-forwards ()
   "Cycle the TODO groups given by the `org-treescope-cyclestates-todo' variable forward."
-  (interactive)
   (org-treescope-cyclestates--next org-treescope-cyclestates--todo-s org-treescope-cyclestates-todo +))
 
-;;;###autoload
-(defun org-treescope-cyclestates-todo-backwards ()
+(defun org-treescope-cyclestates--todo-backwards ()
   "Cycle the TODO groups given by the `org-treescope-cyclestates-todo' variable forward."
-  (interactive)
   (org-treescope-cyclestates--next org-treescope-cyclestates--todo-s org-treescope-cyclestates-todo -))
 
 ;; -- Priority --
-;;;###autoload
-(defun org-treescope-cyclestates-priority-forwards ()
+(defun org-treescope-cyclestates--priority-forwards ()
   "Cycle the PRIORITY groups given by the `org-treescope-cyclestates-priority' variable forward."
-  (interactive)
   (org-treescope-cyclestates--next org-treescope-cyclestates--priority-s org-treescope-cyclestates-priority +))
 
-;;;###autoload
-(defun org-treescope-cyclestates-priority-backwards ()
+(defun org-treescope-cyclestates--priority-backwards ()
   "Cycle the PRIORITY groups given by the `org-treescope-cyclestates-priority' variable forward."
-  (interactive)
   (org-treescope-cyclestates--next org-treescope-cyclestates--priority-s org-treescope-cyclestates-priority -))
 
 ;; -- Times --
-;;;###autoload
-(defun org-treescope-cyclestates-time-forwards (&optional silent)
-  "Cycle through the time mode selectors, and update the calendar if not SILENT."
-  (interactive)
+(defun org-treescope-cyclestates--time-forwards ()
+  "Cycle through the time mode selectors."
   (let* ((validmodes org-treescope-cyclestates-time)
          (currindex (cl-position org-treescope-cyclestates--time-s validmodes :test 'equal))
          (nextindex (mod (1+ currindex) (length validmodes)))
          (nextmode (nth nextindex validmodes)))
-    (setq org-treescope-cyclestates--time-s nextmode))
-  (unless silent (org-treescope-query-apply-to-buffer)))
+    (setq org-treescope-cyclestates--time-s nextmode)))
 
 (provide 'org-treescope-cyclestates)
 ;;; org-treescope-cyclestates.el ends here

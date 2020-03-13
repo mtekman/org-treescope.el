@@ -27,24 +27,28 @@
 ;; This tool provides a time window to analyse your org file.
 
 ;;; Code:
+(require 'org-treescope-cyclestates) ;; brings nil
+(require 'org-treescope-calendarranges) ;; brings datehelper, calendar, and faces
+(require 'org-treescope-query) ;; brings faces, cyclestates, calendarranges
+
 (defvar org-treescope-mode-map
   (let ((map (make-sparse-keymap))
-        (lst '(("<left>" . org-treescope-calendarranges-day-shiftrange-backwards)
-               ("<right>" . org-treescope-calendarranges-day-shiftrange-forwards)
-               ("<up>" . org-treescope-calendarranges-day-shiftrange-backwards-week)
-               ("<down>" . org-treescope-calendarranges-day-shiftrange-forwards-week)
-               ("C-<left>" . org-treescope-calendarranges-day-lowerbound-backwards)
-               ("C-<right>" . org-treescope-calendarranges-day-lowerbound-forwards)
-               ("M-<left>" . org-treescope-calendarranges-day-upperbound-backwards)
-               ("M-<right>" . org-treescope-calendarranges-day-upperbound-forwards)
-               ("C-M-<left>" . org-treescope-calendarranges-day-frommidpoint-leftwards)
-               ("C-M-<right>" . org-treescope-calendarranges-day-frommidpoint-rightwards)
-               ("C-M-<down>" . org-treescope-calendarranges-day-frommidpoint-stop)
-               ("C-<up>" . org-treescope-cyclestates-todo-forwards)
-               ("C-<down>" . org-treescope-cyclestates-todo-backwards)
-               ("M-<up>" . org-treescope-cyclestates-priority-forwards)
-               ("M-<down>" . org-treescope-cyclestates-priority-backwards)
-               ("t" . org-treescope-cyclestates-time-forwards))))
+        (lst '(("<left>" . org-treescope-date-shiftrange-backwards)
+               ("<right>" . org-treescope-date-shiftrange-forwards)
+               ("<up>" . org-treescope-date-shiftrange-backwards-week)
+               ("<down>" . org-treescope-date-shiftrange-forwards-week)
+               ("C-<left>" . org-treescope-date-lowerbound-backwards)
+               ("C-<right>" . org-treescope-date-lowerbound-forwards)
+               ("M-<left>" . org-treescope-date-upperbound-backwards)
+               ("M-<right>" . org-treescope-date-upperbound-forwards)
+               ("C-M-<left>" . org-treescope-date-frommidpoint-leftwards)
+               ("C-M-<right>" . org-treescope-date-frommidpoint-rightwards)
+               ("C-M-<down>" . org-treescope-date-frommidpoint-stop)
+               ("C-<up>" . org-treescope-cycle-todo-forwards)
+               ("C-<down>" . org-treescope-cycle-todo-backwards)
+               ("M-<up>" . org-treescope-cycle-priority-forwards)
+               ("M-<down>" . org-treescope-cycle-priority-backwards)
+               ("t" . org-treescope-cycle-time-forwards))))
     (set-keymap-parent map calendar-mode-map)
     (dolist (keypair lst map)
       (define-key map (kbd (car keypair)) (cdr keypair))))
@@ -55,6 +59,34 @@
   nil
   " scope"
   org-treescope-mode-map)
+
+
+(defmacro org-treescope-mode-writepublicfunctions (origpref newpref type direc)
+  "Write out public functions replicating those from other classes as grouped by TYPE and DIREC, changing ORIGPREF with NEWPREF."
+  (let ((origfun (intern (format "org-treescope-%s--%s-%s" origpref type direc)))
+        (funname (intern (format "org-treescope-%s-%s-%s" newpref type direc))))
+    `;;;###autoload
+    (defun ,funname ()
+      (interactive)
+      (,origfun)
+      (org-treescope-query-apply-to-buffer))))
+
+(org-treescope-mode-writepublicfunctions cyclestates cycle todo forwards)
+(org-treescope-mode-writepublicfunctions cyclestates cycle todo backwards)
+(org-treescope-mode-writepublicfunctions cyclestates cycle priority forwards)
+(org-treescope-mode-writepublicfunctions cyclestates cycle priority backwards)
+(org-treescope-mode-writepublicfunctions cyclestates cycle time forwards)
+(org-treescope-mode-writepublicfunctions calendarranges-day date lowerbound forwards)
+(org-treescope-mode-writepublicfunctions calendarranges-day date lowerbound backwards)
+(org-treescope-mode-writepublicfunctions calendarranges-day date upperbound forwards)
+(org-treescope-mode-writepublicfunctions calendarranges-day date upperbound backwards)
+(org-treescope-mode-writepublicfunctions calendarranges-day date frommidpoint leftwards)
+(org-treescope-mode-writepublicfunctions calendarranges-day date frommidpoint rightwards)
+(org-treescope-mode-writepublicfunctions calendarranges-day date frommidpoint stop)
+(org-treescope-mode-writepublicfunctions calendarranges-day date shiftrange forwards)
+(org-treescope-mode-writepublicfunctions calendarranges-day date shiftrange backwards)
+(org-treescope-mode-writepublicfunctions calendarranges-day date shiftrange forwards-week)
+(org-treescope-mode-writepublicfunctions calendarranges-day date shiftrange backwards-week)
 
 (provide 'org-treescope-mode)
 ;;; org-treescope-mode.el ends here

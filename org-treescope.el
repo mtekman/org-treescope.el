@@ -29,19 +29,10 @@
 ;;; Code:
 (require 'org-ql)
 
-(require 'org-treescope-faces)
-(require 'org-treescope-cyclestates)
-(require 'org-treescope-calendarranges)
-(require 'org-treescope-datehelper)
+(require 'org-treescope-mode)
 
 (defgroup org-treescope nil "org-treescope customisable variables."
   :group 'productivity)
-
-(defcustom org-treescope-userbuffer nil
-  "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
-  :type 'string
-  :group 'org-treescope)
-
 
 ;;;###autoload
 (defun org-treescope ()
@@ -52,6 +43,7 @@
         org-treescope-calendarranges--day--frommidpoint-select nil)
   (org-treescope-calendarranges--sensible-values)
   (org-treescope-query-apply-to-buffer))
+
 
 (provide 'org-treescope)
 ;;; org-treescope.el ends here
