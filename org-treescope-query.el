@@ -87,16 +87,19 @@
 
 ;;;###autoload
 (defun org-treescope-query-apply-to-buffer (&optional query)
-  "Apply the QUERY to the org buffer as an argument to `org-ql-sparse-tree'."
+  "Apply the QUERY to the org buffer as an argument to `org-ql-sparse-tree'.
+Also switch to org buffer and then reselect the calendar window."
   (interactive)
-  (org-treescope-query--redraw-calendar)
-  (let ((query (if query query (org-treescope-query--make-query))))
+  (let ((query (if query query (org-treescope-query--make-query)))
+        (cwin (get-buffer-window "*Calendar*")))
     (when query
       (with-current-buffer (find-file-noselect org-treescope-calendarranges-userbuffer)
         (let ((pos (point)))
           (org-ql-sparse-tree query)
           (goto-char pos)
-          (message (format "%s" query)))))))
+          (message (format "%s" query))))
+      (select-window cwin))))
+
 
 (provide 'org-treescope-query)
 ;;; org-treescope-query.el ends here

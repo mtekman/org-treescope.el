@@ -42,8 +42,7 @@
         org-treescope-calendarranges--day--rightflank nil
         org-treescope-calendarranges--day--frommidpoint-select nil)
   (org-treescope-calendarranges--sensible-values)
-  (org-treescope-query-apply-to-buffer))
-
+  (org-treescope-mode-refresh-calendar))
 
 (provide 'org-treescope)
 ;;; org-treescope.el ends here

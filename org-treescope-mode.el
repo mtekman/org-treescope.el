@@ -27,6 +27,8 @@
 ;; This tool provides a time window to analyse your org file.
 
 ;;; Code:
+(require 'cal-move)
+
 (require 'org-treescope-cyclestates) ;; brings nil
 (require 'org-treescope-calendarranges) ;; brings datehelper, calendar, and faces
 (require 'org-treescope-query) ;; brings faces, cyclestates, calendarranges
@@ -78,25 +80,25 @@
     (defun ,funname ()
       (interactive)
       (,origfun)
-      (org-treescope-query-apply-to-buffer)
-      (org-treescope-mode-refresh-calendar))))
+      (org-treescope-mode-refresh-calendar)
+      (org-treescope-query-apply-to-buffer))))
 
-(org-treescope-mode-writepublicfunctions cyclestates cycle todo forwards)
-(org-treescope-mode-writepublicfunctions cyclestates cycle todo backwards)
-(org-treescope-mode-writepublicfunctions cyclestates cycle priority forwards)
-(org-treescope-mode-writepublicfunctions cyclestates cycle priority backwards)
-(org-treescope-mode-writepublicfunctions cyclestates cycle time forwards)
-(org-treescope-mode-writepublicfunctions calendarranges-day date lowerbound forwards)
-(org-treescope-mode-writepublicfunctions calendarranges-day date lowerbound backwards)
-(org-treescope-mode-writepublicfunctions calendarranges-day date upperbound forwards)
-(org-treescope-mode-writepublicfunctions calendarranges-day date upperbound backwards)
-(org-treescope-mode-writepublicfunctions calendarranges-day date frommidpoint leftwards)
-(org-treescope-mode-writepublicfunctions calendarranges-day date frommidpoint rightwards)
-(org-treescope-mode-writepublicfunctions calendarranges-day date frommidpoint stop)
-(org-treescope-mode-writepublicfunctions calendarranges-day date shiftrange forwards)
-(org-treescope-mode-writepublicfunctions calendarranges-day date shiftrange backwards)
-(org-treescope-mode-writepublicfunctions calendarranges-day date shiftrange forwards-week)
-(org-treescope-mode-writepublicfunctions calendarranges-day date shiftrange backwards-week)
+(org-treescope-mode-writepublicfunctions "cyclestates" "cycle" "todo" "forwards")
+(org-treescope-mode-writepublicfunctions "cyclestates" "cycle" "todo" "backwards")
+(org-treescope-mode-writepublicfunctions "cyclestates" "cycle" "priority" "forwards")
+(org-treescope-mode-writepublicfunctions "cyclestates" "cycle" "priority" "backwards")
+(org-treescope-mode-writepublicfunctions "cyclestates" "cycle" "time" "forwards")
+(org-treescope-mode-writepublicfunctions "calendarranges-day" "date" "lowerbound" "forwards")
+(org-treescope-mode-writepublicfunctions "calendarranges-day" "date" "lowerbound" "backwards")
+(org-treescope-mode-writepublicfunctions "calendarranges-day" "date" "upperbound" "forwards")
+(org-treescope-mode-writepublicfunctions "calendarranges-day" "date" "upperbound" "backwards")
+(org-treescope-mode-writepublicfunctions "calendarranges-day" "date" "frommidpoint" "leftwards")
+(org-treescope-mode-writepublicfunctions "calendarranges-day" "date" "frommidpoint" "rightwards")
+(org-treescope-mode-writepublicfunctions "calendarranges-day" "date" "frommidpoint" "stop")
+(org-treescope-mode-writepublicfunctions "calendarranges-day" "date" "shiftrange" "forwards")
+(org-treescope-mode-writepublicfunctions "calendarranges-day" "date" "shiftrange" "backwards")
+(org-treescope-mode-writepublicfunctions "calendarranges-day" "date" "shiftrange" "forwards-week")
+(org-treescope-mode-writepublicfunctions "calendarranges-day" "date" "shiftrange" "backwards-week")
 
 (provide 'org-treescope-mode)
 ;;; org-treescope-mode.el ends here
