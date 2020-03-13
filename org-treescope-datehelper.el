@@ -25,11 +25,13 @@
 ;; see org-treescope.el
 
 ;;; Code:
+(require 'calendar)
+
 (defvar displayed-month)
 (defvar displayed-year)
 
-(defun org-treescope--first-of-lastmonth ()
-  "Grab the first day of last month of current calendar window.  Used by `org-treescope--redraw-calendar'."
+(defun org-treescope-datehelper--first-of-lastmonth ()
+  "Grab the first day of last month of current calendar window.  Used by `org-treescope-calendarranges--redraw-calendar'."
   (let* ((mont displayed-month)
          (year displayed-year)
          (newm (- mont 1)))
@@ -37,8 +39,8 @@
         (list newm 1 year)
       (list 12 1 (- year 1)))))
 
-(defun org-treescope--last-of-nextmonth ()
-  "Grab the last day of next month of current calendar window.  Used by `org-treescope--redraw-calendar'."
+(defun org-treescope-datehelper--last-of-nextmonth ()
+  "Grab the last day of next month of current calendar window.  Used by `org-treescope-calendarranges--redraw-calendar'."
   (let* ((mont displayed-month)
          (year displayed-year)
          (newm (+ mont 1)))
@@ -46,14 +48,14 @@
         (list 1 31 (+ year 1))
       (list newm (calendar-last-day-of-month newm year) year))))
 
-(defsubst org-treescope--datetostring (gregdate)
-  "Convert GREGDATE to an org compatible date.  Used by `org-treescope--redraw-calendar'."
+(defsubst org-treescope-datehelper--datetostring (gregdate)
+  "Convert GREGDATE to an org compatible date.  Used by `org-treescope-calendarranges--redraw-calendar'."
   (let ((year (nth 2 gregdate))
         (month (nth 0 gregdate))
         (day (nth 1 gregdate)))
     (format "%04d-%02d-%02d" year month day)))
 
-(defsubst org-treescope--getmidpoint () ;; getmidpoint-abs
+(defsubst org-treescope-datehelper--getmidpoint () ;; getmidpoint-abs
   "Grabs the date under cursor (if calendar active), or return the current date."
   (condition-case err
       (calendar-cursor-to-date nil nil)
@@ -61,11 +63,11 @@
      (ignore err)
      (calendar-current-date))))
 
-(defsubst org-treescope--getmidpoint-abs () ;; called by sensible-values and redraw-calendar
+(defsubst org-treescope-datehelper--getmidpoint-abs () ;; called by sensible-values and redraw-calendar
   "Inline substitution to retrieve the current mid point in epochs."
-  (calendar-absolute-from-gregorian (org-treescope--getmidpoint)))
+  (calendar-absolute-from-gregorian (org-treescope-datehelper--getmidpoint)))
 
-(defmacro org-treescope--markdate (abs face) ;; redraw-calendar
+(defmacro org-treescope-datehelper--markdate (abs face) ;; redraw-calendar
   "Takes an ABS date and highlight it on the calendar with FACE."
   `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
 

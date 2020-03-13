@@ -27,7 +27,6 @@
 ;; This tool provides a time window to analyse your org file.
 
 ;;; Code:
-(require 'calendar)
 (require 'org-ql)
 
 (require 'org-treescope-faces)
@@ -37,22 +36,22 @@
 
 (defvar org-treescope-mode-map
   (let ((map (make-sparse-keymap))
-        (lst '(("<left>" . org-treescope-day-shiftrange-backwards)
-               ("<right>" . org-treescope-day-shiftrange-forwards)
-               ("<up>" . org-treescope-day-shiftrange-backwards-week)
-               ("<down>" . org-treescope-day-shiftrange-forwards-week)
-               ("C-<left>" . org-treescope-day-lowerbound-backwards)
-               ("C-<right>" . org-treescope-day-lowerbound-forwards)
-               ("M-<left>" . org-treescope-day-upperbound-backwards)
-               ("M-<right>" . org-treescope-day-upperbound-forwards)
-               ("C-M-<left>" . org-treescope-day-frommidpoint-leftwards)
-               ("C-M-<right>" . org-treescope-day-frommidpoint-rightwards)
-               ("C-M-<down>" . org-treescope-day-frommidpoint-stop)
-               ("C-<up>" . org-treescope-cycle-todostates-forwards)
-               ("C-<down>" . org-treescope-cycle-todostates-backwards)
-               ("M-<up>" . org-treescope-cycle-prioritystates-forwards)
-               ("M-<down>" . org-treescope-cycle-prioritystates-backwards)
-               ("t" . org-treescope-cycle-timestates-forwards))))
+        (lst '(("<left>" . org-treescope-calendarranges-day-shiftrange-backwards)
+               ("<right>" . org-treescope-calendarranges-day-shiftrange-forwards)
+               ("<up>" . org-treescope-calendarranges-day-shiftrange-backwards-week)
+               ("<down>" . org-treescope-calendarranges-day-shiftrange-forwards-week)
+               ("C-<left>" . org-treescope-calendarranges-day-lowerbound-backwards)
+               ("C-<right>" . org-treescope-calendarranges-day-lowerbound-forwards)
+               ("M-<left>" . org-treescope-calendarranges-day-upperbound-backwards)
+               ("M-<right>" . org-treescope-calendarranges-day-upperbound-forwards)
+               ("C-M-<left>" . org-treescope-calendarranges-day-frommidpoint-leftwards)
+               ("C-M-<right>" . org-treescope-calendarranges-day-frommidpoint-rightwards)
+               ("C-M-<down>" . org-treescope-calendarranges-day-frommidpoint-stop)
+               ("C-<up>" . org-treescope-cyclestates-todo-forwards)
+               ("C-<down>" . org-treescope-cyclestates-todo-backwards)
+               ("M-<up>" . org-treescope-cyclestates-priority-forwards)
+               ("M-<down>" . org-treescope-cyclestates-priority-backwards)
+               ("t" . org-treescope-cyclestates-time-forwards))))
     (set-keymap-parent map calendar-mode-map)
     (dolist (keypair lst map)
       (define-key map (kbd (car keypair)) (cdr keypair))))
@@ -74,27 +73,27 @@
 
 (defun org-treescope--generate-datestring ()
   "Generate the date string based on current state."
-  (when org-treescope--state-timemode
-    (if org-treescope--day--frommidpoint-select
+  (when org-treescope-cyclestates--time-s
+    (if org-treescope-calendarranges--day--frommidpoint-select
         (let* ((gregdate-mid (calendar-cursor-to-date))
-               (strdate-mid (org-treescope--datetostring gregdate-mid)))
+               (strdate-mid (org-treescope-datehelper--datetostring gregdate-mid)))
           ;; e.g. :to<2020-12-02> or :from<2019-01-31>
-          `(,org-treescope--state-timemode ,org-treescope--day--frommidpoint-select ,strdate-mid))
+          `(,org-treescope-cyclestates--time-s ,org-treescope-calendarranges--day--frommidpoint-select ,strdate-mid))
       ;; Otherwise set a date range.
-      (let ((gregdate-left  (calendar-gregorian-from-absolute org-treescope--day--leftflank))
-            (gregdate-right (calendar-gregorian-from-absolute org-treescope--day--rightflank)))
-        (let ((strdate-left (org-treescope--datetostring gregdate-left))
-              (strdate-right (org-treescope--datetostring gregdate-right)))
-          `(,org-treescope--state-timemode :from ,strdate-left :to ,strdate-right))))))
+      (let ((gregdate-left  (calendar-gregorian-from-absolute org-treescope-calendarranges--day--leftflank))
+            (gregdate-right (calendar-gregorian-from-absolute org-treescope-calendarranges--day--rightflank)))
+        (let ((strdate-left (org-treescope-datehelper--datetostring gregdate-left))
+              (strdate-right (org-treescope-datehelper--datetostring gregdate-right)))
+          `(,org-treescope-cyclestates--time-s :from ,strdate-left :to ,strdate-right))))))
 
 (defun org-treescope--make-query ()
   "Generate the query from dates, todos and priority states."
   (let ((priority-symbol
-         (if org-treescope--state-prioritygroups
-             `(priority ,@org-treescope--state-prioritygroups)))
+         (if org-treescope-cyclestates--priority-s
+             `(priority ,@org-treescope-cyclestates--priority-s)))
         (todo-symbol
-         (if org-treescope--state-todogroups
-             `(todo ,@org-treescope--state-todogroups)))
+         (if org-treescope-cyclestates--todo-s
+             `(todo ,@org-treescope-cyclestates--todo-s)))
         (date-symbol (org-treescope--generate-datestring)))
     ;; -- Construct a sensible format
     (let* ((working-list (-non-nil `(,date-symbol ,todo-symbol ,priority-symbol))))
@@ -107,7 +106,7 @@
 (defun org-treescope-apply-to-buffer (&optional query)
   "Apply the QUERY to the org buffer as an argument to `org-ql-sparse-tree'."
   (interactive)
-  (org-treescope--redraw-calendar)
+  (org-treescope-calendarranges--redraw-calendar)
   (let ((query (if query query (org-treescope--make-query))))
     (when query
       (with-current-buffer (find-file-noselect org-treescope-userbuffer)
@@ -120,10 +119,10 @@
 (defun org-treescope ()
   "Reset all variables and center around current date."
   (interactive)
-  (setq org-treescope--day--leftflank nil
-        org-treescope--day--rightflank nil
-        org-treescope--day--frommidpoint-select nil)
-  (org-treescope--sensible-values)
+  (setq org-treescope-calendarranges--day--leftflank nil
+        org-treescope-calendarranges--day--rightflank nil
+        org-treescope-calendarranges--day--frommidpoint-select nil)
+  (org-treescope-calendarranges--sensible-values)
   (org-treescope-apply-to-buffer))
 
 (provide 'org-treescope)

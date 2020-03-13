@@ -58,9 +58,9 @@ I don't do that. My mind is simple. I like trees. Trees are easy. You have one o
 
      | Main Customisable Variables  | Current Setting                     | Info                              |
      |------------------------------+-------------------------------------+-----------------------------------|
-     | =org-treescope-todogroups=     | =DONE=, =TODO= =DOING=, =TODO= =DONE= =WAITING= | Any number of elements in a group |
-     | =org-treescope-prioritygroups= | =A=, =A= =C=, =D=                           | Any number of elements in a group |
-     | =org-treescope-timegroups=     | =ts=, =scheduled=, =deadline=, =closed=     | [[https://github.com/alphapapa/org-ql#datetime-predicates][Other predicates]] can be added     |
+     | =org-treescope-cyclestates-todo=     | =DONE=, =TODO= =DOING=, =TODO= =DONE= =WAITING= | Any number of elements in a group |
+     | =org-treescope-cyclestates-priority= | =A=, =A= =C=, =D=                           | Any number of elements in a group |
+     | =org-treescope-cyclestates-time=     | =ts=, =scheduled=, =deadline=, =closed=     | [[https://github.com/alphapapa/org-ql#datetime-predicates][Other predicates]] can be added     |
 
      These can be customised to specify different groups/pairs that might be more useful to the user.
 
@@ -70,7 +70,7 @@ I don't do that. My mind is simple. I like trees. Trees are easy. You have one o
 
      | Variable                    | Info                                                                                 |
      |-----------------------------+--------------------------------------------------------------------------------------|
-     | =org-treescope-marker-range=  | The face used to specify all dates within the range except the centre midpoint date. |
-     | =org-treescope-marker-midday= | The face used only by the centre midpoint date.                                      |
+     | =org-treescope-faces-range=  | The face used to specify all dates within the range except the centre midpoint date. |
+     | =org-treescope-faces-midday= | The face used only by the centre midpoint date.                                      |
  
 

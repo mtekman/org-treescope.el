@@ -25,7 +25,7 @@
 ;; see org-treescope.el
 
 ;;; Code:
-(defface org-treescope--markerinternal-range
+(defface org-treescope-faces--markerinternal-range
   '((((class color) (background light))
      :background "darkblue")
     (((class color) (background dark))
@@ -34,7 +34,7 @@
   "Face for showing the range markers."
   :group 'treescope-faces)
 
-(defface org-treescope--markerinternal-midday
+(defface org-treescope-faces--markerinternal-midday
   '((((class color) (background light))
      :background "green")
     (((class color) (background dark))
@@ -43,11 +43,11 @@
   "Face for showing the middle marker."
   :group 'treescope-faces)
 
-(defcustom org-treescope-marker-range 'org-treescope--markerinternal-range
+(defcustom org-treescope-faces-range 'org-treescope-faces--markerinternal-range
   "How to highlight all days covered by the ranges in the calendar."
   :type '(choice (string :tag "Single character string") face)
   :group 'org-treescope)
-(defcustom org-treescope-marker-midday 'org-treescope--markerinternal-midday
+(defcustom org-treescope-faces-midday 'org-treescope-faces--markerinternal-midday
   "How to highlight all days covered by the ranges in the calendar."
   :type '(choice (string :tag "Single character string") face)
   :group 'org-treescope)
