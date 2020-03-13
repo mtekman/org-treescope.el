@@ -37,7 +37,7 @@
 
 (defmacro org-treescope-calendarranges--defaults-and-updates (&rest innercode)
   "Set default NDAYS to 1 and silent to true, run INNERCODE, and then update-now."
-  `(let ((ndays (if ndays ndays 1)))
+  `(let ((ndays (or ndays 1)))
      ,@innercode
      (unless silent
        (org-treescope-calendarranges--sensible-values))))

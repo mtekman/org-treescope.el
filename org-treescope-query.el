@@ -93,7 +93,7 @@
   "Apply the QUERY to the org buffer as an argument to `org-ql-sparse-tree'.
 Also switch to org buffer and then reselect the calendar window."
   (interactive)
-  (let ((query (if query query (org-treescope-query--make-query)))
+  (let ((query (or query (org-treescope-query--make-query)))
         (cwin (get-buffer-window "*Calendar*")))
     (when query
       (with-current-buffer (find-file-noselect org-treescope-query-userbuffer)
