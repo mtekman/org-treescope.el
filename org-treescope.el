@@ -32,7 +32,7 @@
 
 (require 'org-treescope-faces)
 (require 'org-treescope-cyclestates)
-(require 'org-treescope-rangesandflanks)
+(require 'org-treescope-calendarranges)
 (require 'org-treescope-datehelper)
 
 (defvar org-treescope-mode-map
@@ -102,36 +102,6 @@
           (if (eq 1 (length working-list))
               (car working-list)
             `(and ,@working-list))))))
-
-(defun org-treescope--redraw-calendar ()
-  "Show and update the calendar to show the left, right, and middle flanks."
-  ;; if calendar not open
-  (unless (member "*Calendar*"
-                  (--map (buffer-name (window-buffer it)) (window-list)))
-    (calendar))
-  (org-treescope-mode t)
-  ;; perform drawing operations
-  (calendar-unmark)
-  (when org-treescope--state-timemode
-    (let ((mid (org-treescope--getmidpoint-abs))
-          (sel org-treescope--day--frommidpoint-select)
-          (lfl org-treescope--day--leftflank)
-          (rfl org-treescope--day--rightflank)
-          (folm (calendar-absolute-from-gregorian (org-treescope--first-of-lastmonth)))
-          (lonm (calendar-absolute-from-gregorian (org-treescope--last-of-nextmonth))))
-      (if sel
-          ;; If a flank, redefine the flanking limits
-          (cond ((eq sel :from) (setq rfl lonm
-                                      lfl mid))
-                ((eq sel :to) (setq lfl folm
-                                    rfl mid))))
-      ;; Now colour the defined range.
-      (dolist (absdate (number-sequence lfl rfl))
-        (let ((visiblep (<= folm absdate lonm))
-              (middlep (eq absdate mid)))
-          (if (and visiblep middlep)
-              (org-treescope--markdate mid org-treescope-marker-midday)
-            (org-treescope--markdate absdate org-treescope-marker-range)))))))
 
 ;;;###autoload
 (defun org-treescope-apply-to-buffer (&optional query)
