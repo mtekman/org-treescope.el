@@ -60,6 +60,15 @@
   " scope"
   org-treescope-mode-map)
 
+(defun org-treescope-mode-refresh-calendar ()
+  "Enable the calendar and update the flanks."
+  (unless (member "*Calendar*"
+                  (-map (lambda (it) (buffer-name (window-buffer it))) (window-list)))
+    (calendar))
+  (org-treescope-mode t)
+  (calendar-unmark)
+  ;; perform drawing operations
+  (org-treescope-query--redraw-calendar))
 
 (defmacro org-treescope-mode-writepublicfunctions (origpref newpref type direc)
   "Write out public functions replicating those from other classes as grouped by TYPE and DIREC, changing ORIGPREF with NEWPREF."
@@ -69,7 +78,8 @@
     (defun ,funname ()
       (interactive)
       (,origfun)
-      (org-treescope-query-apply-to-buffer))))
+      (org-treescope-query-apply-to-buffer)
+      (org-treescope-mode-refresh-calendar))))
 
 (org-treescope-mode-writepublicfunctions cyclestates cycle todo forwards)
 (org-treescope-mode-writepublicfunctions cyclestates cycle todo backwards)

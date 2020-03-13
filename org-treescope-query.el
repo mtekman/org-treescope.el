@@ -63,15 +63,7 @@
             `(and ,@working-list))))))
 
 (defun org-treescope-query--redraw-calendar ()
-  "Show and update the calendar to show the left, right, and middle flanks."
-  ;; if calendar not open
-  (require 'dash)
-  (unless (member "*Calendar*"
-                  (-map (lambda (it) (buffer-name (window-buffer it))) (window-list)))
-    (calendar))
-  (org-treescope-mode t)
-  ;; perform drawing operations
-  (calendar-unmark)
+  "Redraw the calendar to show the left, right, and middle flanks."
   (when org-treescope-cyclestates--time-s
     (let ((mid (org-treescope-datehelper--getmidpoint-abs))
           (sel org-treescope-calendarranges--day--frommidpoint-select)
