@@ -6,7 +6,7 @@
 ;; URL: https://github.com/mtekman/org-treescope.el
 ;; Keywords: outlines
 ;; Package-Requires: ((emacs "24") (org "9.2.3") (org-ql "0.5-pre") (dash "2.17.0"))
-;; Version: 0.3
+;; Version: 0.4
 
 ;;; License:
 
@@ -22,9 +22,7 @@
 
 ;;; Commentary:
 
-;; Navigating through an org file to see what needs to be done
-;; this week and what was completed last month can be tricky.
-;; This tool provides a time window to analyse your org file.
+;; see org-treescope.el
 
 ;;; Code:
 (require 'org-treescope-faces) ;; brings nil
