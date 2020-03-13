@@ -25,6 +25,15 @@
 ;; see org-treescope.el
 
 ;;; Code:
+(require 'calendar)
+(require 'dash)
+
+(require 'org-treescope-query)
+(require 'org-treescope-cyclestates)
+(require 'org-treescope-datehelper)
+(require 'org-treescope-faces)
+(require 'org-treescope-mode)
+
 (defvar org-treescope-calendarranges--day--leftflank nil)
 (defvar org-treescope-calendarranges--day--rightflank nil)
 (defvar org-treescope-calendarranges--day--frommidpoint-select nil "Possible values are `:to' and `:from'.")
@@ -35,7 +44,7 @@
      ,@innercode
      (unless silent
        (org-treescope-calendarranges--sensible-values)
-       (org-treescope-apply-to-buffer))))
+       (org-treescope-query-apply-to-buffer))))
 
 (defmacro org-treescope-calendarranges--shift-ranges (direction lowerb upperb)
   "Call the LOWERB and UPPERB (low/up bounds) in DIRECTION.
@@ -115,7 +124,7 @@ Don't update if SILENT.  NDAYS exists for macro purposes."
   "Set the flank selector to nothing and restore shift range mode.  Don't update if SILENT."
   (interactive)
   (setq org-treescope-calendarranges--day--frommidpoint-select nil)
-  (unless silent (org-treescope-apply-to-buffer)))
+  (unless silent (org-treescope-query-apply-to-buffer)))
 
 ;;;###autoload
 (defun org-treescope-calendarranges-day-shiftrange-backwards (&optional ndays silent)
@@ -153,7 +162,7 @@ Don't update if SILENT.  NDAYS exists for macro purposes."
   ;; if calendar not open
   (require 'dash)
   (unless (member "*Calendar*"
-                  (--map (buffer-name (window-buffer it)) (window-list)))
+                  (-map (lambda (it) (buffer-name (window-buffer it))) (window-list)))
     (calendar))
   (org-treescope-mode t)
   ;; perform drawing operations

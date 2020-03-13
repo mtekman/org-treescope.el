@@ -25,6 +25,8 @@
 ;; see org-treescope.el
 
 ;;; Code:
+(require 'org-treescope-query)
+
 (defcustom org-treescope-cyclestates-todo
   '(nil ("DONE") ("TODO" "DOING") ("TODO" "DONE") ("WAITING"))
   "List of TODO groups to show in buffer.  A value of nil shows all."
@@ -55,7 +57,7 @@ where nil means don't select for time at all.")
           (nxt-index (mod (,direction now-index 1) (length ,statelist)))
           (nxt-state (nth nxt-index ,statelist)))
      (setq ,statecurrent nxt-state)
-     (org-treescope-apply-to-buffer)))
+     (org-treescope-query-apply-to-buffer)))
 
 ;; -- Todos --
 ;;;###autoload
@@ -93,7 +95,7 @@ where nil means don't select for time at all.")
          (nextindex (mod (1+ currindex) (length validmodes)))
          (nextmode (nth nextindex validmodes)))
     (setq org-treescope-cyclestates--time-s nextmode))
-  (unless silent (org-treescope-apply-to-buffer)))
+  (unless silent (org-treescope-query-apply-to-buffer)))
 
 (provide 'org-treescope-cyclestates)
 ;;; org-treescope-cyclestates.el ends here
