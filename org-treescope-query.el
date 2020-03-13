@@ -29,7 +29,6 @@
 (require 'org-treescope-cyclestates) ;; brings nil
 (require 'org-treescope-calendarranges) ;; brings datehelper, calendar, and faces
 
-;;(setq org-treescope-query-userbuffer "~/repos/org-projects/gtd/projects.org")
 (defcustom org-treescope-query-userbuffer nil
   "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
   :type 'string
