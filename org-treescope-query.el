@@ -31,6 +31,7 @@
 (require 'org-treescope-cyclestates) ;; brings nil
 (require 'org-treescope-calendarranges) ;; brings datehelper, calendar, and faces
 
+;;(setq org-treescope-query-userbuffer "~/repos/org-projects/gtd/projects.org")
 (defcustom org-treescope-query-userbuffer nil
   "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
   :type 'string
@@ -85,7 +86,7 @@
       ;; Now colour the defined range.
       (dolist (absdate (number-sequence lfl rfl))
         (let ((visiblep (<= folm absdate lonm))
-              (middlep (eq absdate mid)))
+              (middlep (eq absdate mida)))
           (if (and visiblep middlep)
               (org-treescope-datehelper--markdate mida org-treescope-faces-midday)
             (org-treescope-datehelper--markdate absdate org-treescope-faces-range)))))))
