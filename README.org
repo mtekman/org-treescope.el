@@ -15,7 +15,7 @@ I don't do that. My mind is simple. I like trees. Trees are easy. You have one o
 
    #+begin_src elisp
      (use-package org-treescope
-       :custom (org-treescope-calendarranges-userbuffer "~/path/to/projects.org")
+       :custom (org-treescope-query-userbuffer "~/path/to/projects.org")
        :bind (("C-c M-t" . org-treescope)))       
    #+end_src
 
@@ -50,7 +50,7 @@ I don't do that. My mind is simple. I like trees. Trees are easy. You have one o
 
 ** Customisation
 
-   The user should set the =org-treescope-calendarranges-userbuffer= to a single org-mode file, and also check that the below scope types are set to reasonable ranges for that file.
+   The user should set the =org-treescope-query-userbuffer= to a single org-mode file, and also check that the below scope types are set to reasonable ranges for that file.
 
 **** Scope Types
 

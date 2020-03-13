@@ -31,6 +31,11 @@
 (require 'org-treescope-cyclestates) ;; brings nil
 (require 'org-treescope-calendarranges) ;; brings datehelper, calendar, and faces
 
+(defcustom org-treescope-query-userbuffer nil
+  "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
+  :type 'string
+  :group 'org-treescope)
+
 (defun org-treescope-query--generate-datestring ()
   "Generate the date string based on current state."
   (when org-treescope-cyclestates--time-s
@@ -65,24 +70,24 @@
 (defun org-treescope-query--redraw-calendar ()
   "Redraw the calendar to show the left, right, and middle flanks."
   (when org-treescope-cyclestates--time-s
-    (let ((mid (org-treescope-datehelper--getmidpoint-abs))
-          (sel org-treescope-calendarranges--day--frommidpoint-select)
+    (let ((sel org-treescope-calendarranges--day--frommidpoint-select)
           (lfl org-treescope-calendarranges--day--leftflank)
           (rfl org-treescope-calendarranges--day--rightflank)
+          (mida (org-treescope-datehelper--getmidpoint-abs))
           (folm (calendar-absolute-from-gregorian (org-treescope-datehelper--first-of-lastmonth)))
           (lonm (calendar-absolute-from-gregorian (org-treescope-datehelper--last-of-nextmonth))))
       (if sel
           ;; If a flank, redefine the flanking limits
           (cond ((eq sel :from) (setq rfl lonm
-                                      lfl mid))
+                                      lfl mida))
                 ((eq sel :to) (setq lfl folm
-                                    rfl mid))))
+                                    rfl mida))))
       ;; Now colour the defined range.
       (dolist (absdate (number-sequence lfl rfl))
         (let ((visiblep (<= folm absdate lonm))
               (middlep (eq absdate mid)))
           (if (and visiblep middlep)
-              (org-treescope-datehelper--markdate mid org-treescope-faces-midday)
+              (org-treescope-datehelper--markdate mida org-treescope-faces-midday)
             (org-treescope-datehelper--markdate absdate org-treescope-faces-range)))))))
 
 ;;;###autoload
@@ -93,13 +98,12 @@ Also switch to org buffer and then reselect the calendar window."
   (let ((query (if query query (org-treescope-query--make-query)))
         (cwin (get-buffer-window "*Calendar*")))
     (when query
-      (with-current-buffer (find-file-noselect org-treescope-calendarranges-userbuffer)
+      (with-current-buffer (find-file-noselect org-treescope-query-userbuffer)
         (let ((pos (point)))
           (org-ql-sparse-tree query)
           (goto-char pos)
           (message (format "%s" query))))
       (select-window cwin))))
-
 
 (provide 'org-treescope-query)
 ;;; org-treescope-query.el ends here

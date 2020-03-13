@@ -35,11 +35,6 @@
 (defvar org-treescope-calendarranges--day--rightflank nil)
 (defvar org-treescope-calendarranges--day--frommidpoint-select nil "Possible values are `:to' and `:from'.")
 
-(defcustom org-treescope-calendarranges-userbuffer nil
-  "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
-  :type 'string
-  :group 'org-treescope)
-
 (defmacro org-treescope-calendarranges--defaults-and-updates (&rest innercode)
   "Set default NDAYS to 1 and silent to true, run INNERCODE, and then update-now."
   `(let ((ndays (if ndays ndays 1)))
