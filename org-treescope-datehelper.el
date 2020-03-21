@@ -67,9 +67,9 @@
   "Inline substitution to retrieve the current mid point in epochs."
   (calendar-absolute-from-gregorian (org-treescope-datehelper--getmidpoint)))
 
-(defmacro org-treescope-datehelper--markdate (abs face) ;; redraw-calendar
+(defsubst org-treescope-datehelper--markdate (abs face) ;; redraw-calendar
   "Takes an ABS date and highlight it on the calendar with FACE."
-  `(calendar-mark-visible-date (calendar-gregorian-from-absolute ,abs) ,face))
+  (calendar-mark-visible-date (calendar-gregorian-from-absolute abs) face))
 
 (provide 'org-treescope-datehelper)
 ;;; org-treescope-datehelper.el ends here
