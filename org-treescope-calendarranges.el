@@ -64,7 +64,8 @@
     (if (<= lflank midpoint rflank)
         (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute lflank)))
     (unless silent
-      (org-treescope-calendarranges--sensible-values))))
+      (org-treescope-calendarranges--sensible-values)
+      (org-treescope-modehelper--runpublichook))))
 
 ;;;###autoload
 (defun org-treescope-calendarranges-day-lowerbound-backwards (&optional ndays silent)
@@ -78,7 +79,8 @@
     (if (<= lflank midpoint rflank)
         (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute lflank)))
     (unless silent
-      (org-treescope-calendarranges--sensible-values))))
+      (org-treescope-calendarranges--sensible-values)
+      (org-treescope-modehelper--runpublichook))))
 
 ;;;###autoload
 (defun org-treescope-calendarranges-day-upperbound-forwards (&optional ndays silent)
@@ -92,7 +94,8 @@
     (if (<= lflank midpoint rflank)
         (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute rflank)))
     (unless silent
-      (org-treescope-calendarranges--sensible-values))))
+      (org-treescope-calendarranges--sensible-values)
+      (org-treescope-modehelper--runpublichook))))
 
 ;;;###autoload
 (defun org-treescope-calendarranges-day-upperbound-backwards (&optional ndays silent)
@@ -106,7 +109,8 @@
     (if (<= lflank midpoint rflank)
         (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute rflank)))
     (unless silent
-      (org-treescope-calendarranges--sensible-values))))
+      (org-treescope-calendarranges--sensible-values)
+      (org-treescope-modehelper--runpublichook))))
 
 ;;;###autoload
 (defun org-treescope-calendarranges-day-frommidpoint-leftwards (&optional  silent)
@@ -114,7 +118,8 @@
   (interactive)
   (setq org-treescope-calendarranges--day--frommidpoint-select :to)
   (unless silent
-    (org-treescope-calendarranges--sensible-values)))
+    (org-treescope-calendarranges--sensible-values)
+    (org-treescope-modehelper--runpublichook)))
 
 ;;;###autoload
 (defun org-treescope-calendarranges-day-frommidpoint-rightwards (&optional silent)
@@ -122,14 +127,17 @@
   (interactive)
   (setq org-treescope-calendarranges--day--frommidpoint-select :from)
   (unless silent
-    (org-treescope-calendarranges--sensible-values)))
+    (org-treescope-calendarranges--sensible-values)
+    (org-treescope-modehelper--runpublichook)))
 
 ;;;###autoload
 (defun org-treescope-calendarranges-day-frommidpoint-stop ()
   "Set the flank selector to nothing and restore shift range mode."
   (interactive)
-  (setq org-treescope-calendarranges--day--frommidpoint-select nil))
+  (setq org-treescope-calendarranges--day--frommidpoint-select nil)
+  (org-treescope-modehelper--runpublichook))
 
+;;;###autoload
 (defun org-treescope-calendarranges-day-shiftrange-backwards (&optional ndays silent)
   "Shift entire range back by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
@@ -138,7 +146,8 @@
     (org-treescope-calendarranges-day-lowerbound-backwards ndays t)
     (org-treescope-calendarranges-day-upperbound-backwards ndays t))
   (unless silent
-    (org-treescope-calendarranges--sensible-values)))
+    (org-treescope-calendarranges--sensible-values)
+    (org-treescope-modehelper--runpublichook)))
 
 ;;;###autoload
 (defun org-treescope-calendarranges-day-shiftrange-forwards (&optional ndays silent)
@@ -149,7 +158,8 @@
     (org-treescope-calendarranges-day-lowerbound-forwards ndays t)
     (org-treescope-calendarranges-day-upperbound-forwards ndays t))
   (unless silent
-    (org-treescope-calendarranges--sensible-values)))
+    (org-treescope-calendarranges--sensible-values)
+    (org-treescope-modehelper--runpublichook)))
 
 ;;;###autoload
 (defun org-treescope-calendarranges-day-shiftrange-backwards-week (&optional silent)

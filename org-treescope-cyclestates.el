@@ -59,7 +59,8 @@ where nil means don't select for time at all.")
   (let* ((now-index (or (cl-position org-treescope-cyclestates--todo-s org-treescope-cyclestates-todo :test (quote equal)) 0))
          (nxt-index (mod (+ now-index 1) (length org-treescope-cyclestates-todo)))
          (nxt-state (nth nxt-index org-treescope-cyclestates-todo)))
-    (setq org-treescope-cyclestates--todo-s nxt-state)))
+    (setq org-treescope-cyclestates--todo-s nxt-state)
+    (org-treescope-modehelper--runpublichook)))
 
 ;;;###autoload
 (defun org-treescope-cyclestates-todo-backwards ()
@@ -68,7 +69,8 @@ where nil means don't select for time at all.")
   (let* ((now-index (or (cl-position org-treescope-cyclestates--todo-s org-treescope-cyclestates-todo :test (quote equal)) 0))
          (nxt-index (mod (- now-index 1) (length org-treescope-cyclestates-todo)))
          (nxt-state (nth nxt-index org-treescope-cyclestates-todo)))
-    (setq org-treescope-cyclestates--todo-s nxt-state)))
+    (setq org-treescope-cyclestates--todo-s nxt-state)
+    (org-treescope-modehelper--runpublichook)))
 
 ;; -- Priority --
 ;;;###autoload
@@ -78,7 +80,8 @@ where nil means don't select for time at all.")
   (let* ((now-index (or (cl-position org-treescope-cyclestates--priority-s org-treescope-cyclestates-priority :test (quote equal)) 0))
          (nxt-index (mod (+ now-index 1) (length org-treescope-cyclestates-priority)))
          (nxt-state (nth nxt-index org-treescope-cyclestates-priority)))
-    (setq org-treescope-cyclestates--priority-s nxt-state)))
+    (setq org-treescope-cyclestates--priority-s nxt-state)
+    (org-treescope-modehelper--runpublichook)))
 
 ;;;###autoload
 (defun org-treescope-cyclestates-priority-backwards ()
@@ -87,7 +90,8 @@ where nil means don't select for time at all.")
   (let* ((now-index (or (cl-position org-treescope-cyclestates--priority-s org-treescope-cyclestates-priority :test (quote equal)) 0))
          (nxt-index (mod (- now-index 1) (length org-treescope-cyclestates-priority)))
          (nxt-state (nth nxt-index org-treescope-cyclestates-priority)))
-    (setq org-treescope-cyclestates--priority-s nxt-state)))
+    (setq org-treescope-cyclestates--priority-s nxt-state)
+    (org-treescope-modehelper--runpublichook)))
 
 ;; -- Times --
 ;;;###autoload
@@ -98,7 +102,8 @@ where nil means don't select for time at all.")
          (currindex (cl-position org-treescope-cyclestates--time-s validmodes :test 'equal))
          (nextindex (mod (1+ currindex) (length validmodes)))
          (nextmode (nth nextindex validmodes)))
-    (setq org-treescope-cyclestates--time-s nextmode)))
+    (setq org-treescope-cyclestates--time-s nextmode)
+    (org-treescope-modehelper--runpublichook)))
 
 (dolist (pair '(("C-<up>" . org-treescope-cyclestates-todo-forwards)
                 ("C-<down>" . org-treescope-cyclestates-todo-backwards)
