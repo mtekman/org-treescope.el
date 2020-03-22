@@ -26,9 +26,24 @@
 
 ;;; Code:
 (require 'cl-lib)
+(require 'org-treescope-query)
 
 (defvar org-treescope-modehelper-list nil
   "Alist of KEY BINDING pairs, populated throughout.")
+
+;; these two functions are added to every autoload
+(org-treescope-mode-refresh-calendar)
+(org-treescope-query-apply-to-buffer)
+
+(defun org-treescope-mode-refresh-calendar ()
+  "Enable the calendar and update the flanks."
+  (unless (member "*Calendar*"
+                  (-map (lambda (it) (buffer-name (window-buffer it))) (window-list)))
+    (calendar))
+  ;;(org-treescope-mode t) -- add hook here instead in the main part
+  (calendar-unmark)
+  (org-treescope-query--redraw-calendar))
+
 
 (provide 'org-treescope-modehelper)
 ;;; org-treescope-modehelper.el ends here

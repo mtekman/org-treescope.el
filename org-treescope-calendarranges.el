@@ -40,7 +40,7 @@
   "Check that all time flankers are initialised and at sensible defaults."
   ;; We deal with absolute dates, not gregorian.
   (let* ((mid (org-treescope-datehelper--getmidpoint-abs))
-        ;; If not set, then flank the midpoint 3 days either side
+         ;; If not set, then flank the midpoint 3 days either side
          (lflank (or org-treescope-calendarranges--day--leftflank (- mid 3)))
          (rflank (or org-treescope-calendarranges--day--rightflank (+ mid 3))))
     ;; -- check sensible values --

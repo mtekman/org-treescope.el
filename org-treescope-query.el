@@ -88,6 +88,7 @@
               (org-treescope-datehelper--markdate mida org-treescope-faces-midday)
             (org-treescope-datehelper--markdate absdate org-treescope-faces-range)))))))
 
+
 ;;;###autoload
 (defun org-treescope-query-apply-to-buffer (&optional query)
   "Apply the QUERY to the org buffer as an argument to `org-ql-sparse-tree'.

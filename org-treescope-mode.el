@@ -29,7 +29,6 @@
 
 (require 'org-treescope-cyclestates) ;; brings nil
 (require 'org-treescope-calendarranges) ;; brings datehelper, calendar, and faces
-(require 'org-treescope-query) ;; brings faces, cyclestates, calendarranges
 (require 'org-treescope-modehelper)
 
 (defvar org-treescope-mode-map
@@ -45,15 +44,6 @@
   nil
   " scope"
   org-treescope-mode-map)
-
-(defun org-treescope-mode-refresh-calendar ()
-  "Enable the calendar and update the flanks."
-  (unless (member "*Calendar*"
-                  (-map (lambda (it) (buffer-name (window-buffer it))) (window-list)))
-    (calendar))
-  (org-treescope-mode t)
-  (calendar-unmark)
-  (org-treescope-query--redraw-calendar))
 
 (provide 'org-treescope-mode)
 ;;; org-treescope-mode.el ends here
