@@ -39,17 +39,17 @@
 (defun org-treescope-calendarranges--sensible-values ()
   "Check that all time flankers are initialised and at sensible defaults."
   ;; We deal with absolute dates, not gregorian.
-  (let ((mid (org-treescope-datehelper--getmidpoint-abs))
-        (lflank org-treescope-calendarranges--day--leftflank)
-        (rflank org-treescope-calendarranges--day--rightflank))
-    ;; If not set, then flank the midpoint 3 days either side
-    (unless lflank (setq org-treescope-calendarranges--day--leftflank (- mid 3)))
-    (unless rflank (setq org-treescope-calendarranges--day--rightflank (+ mid 3)))
+  (let* ((mid (org-treescope-datehelper--getmidpoint-abs))
+        ;; If not set, then flank the midpoint 3 days either side
+         (lflank (or org-treescope-calendarranges--day--leftflank (- mid 3)))
+         (rflank (or org-treescope-calendarranges--day--rightflank (+ mid 3))))
     ;; -- check sensible values --
     (if (> lflank rflank)  ;; left outflanks right
-        (setq org-treescope-calendarranges--day--rightflank (1+ lflank)))
+        (setq rflank (1+ lflank)))
     (if (< rflank lflank)  ;; right outflanks left
-        (setq org-treescope-calendarranges--day--leftflank (1- rflank)))))
+        (setq lflank (1- rflank)))
+    (setq org-treescope-calendarranges--day--leftflank lflank
+          org-treescope-calendarranges--day--rightflank rflank)))
 
 ;; -- Date Methods
 (defun org-treescope-calendarranges-day-lowerbound-forwards (&optional ndays silent)
