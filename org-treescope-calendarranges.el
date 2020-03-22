@@ -52,6 +52,7 @@
           org-treescope-calendarranges--day--rightflank rflank)))
 
 ;; -- Date Methods
+;;;###autoload
 (defun org-treescope-calendarranges-day-lowerbound-forwards (&optional ndays silent)
   "Move left-flank by NDAYS forwards.  Don't update if SILENT."
   (interactive)
@@ -65,6 +66,7 @@
     (unless silent
       (org-treescope-calendarranges--sensible-values))))
 
+;;;###autoload
 (defun org-treescope-calendarranges-day-lowerbound-backwards (&optional ndays silent)
   "Move left-flank by NDAYS backwards.  Don't update if SILENT."
   (interactive)
@@ -78,6 +80,7 @@
     (unless silent
       (org-treescope-calendarranges--sensible-values))))
 
+;;;###autoload
 (defun org-treescope-calendarranges-day-upperbound-forwards (&optional ndays silent)
   "Move right-flank by NDAYS forwards.  Don't update if SILENT."
   (interactive)
@@ -91,6 +94,7 @@
     (unless silent
       (org-treescope-calendarranges--sensible-values))))
 
+;;;###autoload
 (defun org-treescope-calendarranges-day-upperbound-backwards (&optional ndays silent)
   "Move right-flank by NDAYS backwards.  Don't update if SILENT."
   (interactive)
@@ -104,6 +108,7 @@
     (unless silent
       (org-treescope-calendarranges--sensible-values))))
 
+;;;###autoload
 (defun org-treescope-calendarranges-day-frommidpoint-leftwards (&optional  silent)
   "Ignore left and right flanks, and select all dates before midpoint.  Don't update if SILENT."
   (interactive)
@@ -111,6 +116,7 @@
   (unless silent
     (org-treescope-calendarranges--sensible-values)))
 
+;;;###autoload
 (defun org-treescope-calendarranges-day-frommidpoint-rightwards (&optional silent)
   "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
   (interactive)
@@ -118,6 +124,7 @@
   (unless silent
     (org-treescope-calendarranges--sensible-values)))
 
+;;;###autoload
 (defun org-treescope-calendarranges-day-frommidpoint-stop ()
   "Set the flank selector to nothing and restore shift range mode."
   (interactive)
@@ -133,6 +140,7 @@
   (unless silent
     (org-treescope-calendarranges--sensible-values)))
 
+;;;###autoload
 (defun org-treescope-calendarranges-day-shiftrange-forwards (&optional ndays silent)
   "Shift entire range forwards by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
@@ -143,11 +151,13 @@
   (unless silent
     (org-treescope-calendarranges--sensible-values)))
 
+;;;###autoload
 (defun org-treescope-calendarranges-day-shiftrange-backwards-week (&optional silent)
   "Shift entire range back by a week and update midpoint.  Don't update if SILENT."
   (interactive)
   (org-treescope-calendarranges-day-shiftrange-backwards 7 silent))
 
+;;;###autoload
 (defun org-treescope-calendarranges-day-shiftrange-forwards-week ()
   "Shift entire range forwards by a week and update midpoint."
   (interactive)

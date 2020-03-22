@@ -52,6 +52,7 @@ Valid values are `ts', `scheduled', `deadline', (as per `org-ql') and nil,
 where nil means don't select for time at all.")
 
 ;; -- Todos --
+;;;###autoload
 (defun org-treescope-cyclestates-todo-forwards ()
   "Cycle the TODO groups given by the `org-treescope-cyclestates-todo' variable forward."
   (interactive)
@@ -60,6 +61,7 @@ where nil means don't select for time at all.")
          (nxt-state (nth nxt-index org-treescope-cyclestates-todo)))
     (setq org-treescope-cyclestates--todo-s nxt-state)))
 
+;;;###autoload
 (defun org-treescope-cyclestates-todo-backwards ()
   "Cycle the TODO groups given by the `org-treescope-cyclestates-todo' variable forward."
   (interactive)
@@ -69,6 +71,7 @@ where nil means don't select for time at all.")
     (setq org-treescope-cyclestates--todo-s nxt-state)))
 
 ;; -- Priority --
+;;;###autoload
 (defun org-treescope-cyclestates-priority-forwards ()
   "Cycle the PRIORITY groups given by the `org-treescope-cyclestates-priority' variable forward."
   (interactive)
@@ -77,6 +80,7 @@ where nil means don't select for time at all.")
          (nxt-state (nth nxt-index org-treescope-cyclestates-priority)))
     (setq org-treescope-cyclestates--priority-s nxt-state)))
 
+;;;###autoload
 (defun org-treescope-cyclestates-priority-backwards ()
   "Cycle the PRIORITY groups given by the `org-treescope-cyclestates-priority' variable forward."
   (interactive)
@@ -86,6 +90,7 @@ where nil means don't select for time at all.")
     (setq org-treescope-cyclestates--priority-s nxt-state)))
 
 ;; -- Times --
+;;;###autoload
 (defun org-treescope-cyclestates-time-forwards ()
   "Cycle through the time mode selectors."
   (interactive)
