@@ -142,9 +142,10 @@
   "Shift entire range back by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays (or ndays 1)))
-    (calendar-forward-day (- ndays))
-    (org-treescope-calendarranges-day-lowerbound-backwards ndays t)
-    (org-treescope-calendarranges-day-upperbound-backwards ndays t))
+    (progn 
+      (org-treescope-calendarranges-day-lowerbound-backwards ndays t)
+      (calendar-forward-day (- ndays))
+      (org-treescope-calendarranges-day-upperbound-backwards ndays t)))
   (unless silent
     (org-treescope-calendarranges--sensible-values)
     (org-treescope-modehelper--runpublichook)))
@@ -154,9 +155,10 @@
   "Shift entire range forwards by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays (or ndays 1)))
-    (calendar-forward-day (+ ndays))
-    (org-treescope-calendarranges-day-lowerbound-forwards ndays t)
-    (org-treescope-calendarranges-day-upperbound-forwards ndays t))
+    (progn 
+      (calendar-forward-day (+ ndays))
+      (org-treescope-calendarranges-day-lowerbound-forwards ndays t)
+      (org-treescope-calendarranges-day-upperbound-forwards ndays t)))
   (unless silent
     (org-treescope-calendarranges--sensible-values)
     (org-treescope-modehelper--runpublichook)))
