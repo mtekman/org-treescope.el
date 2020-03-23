@@ -38,16 +38,16 @@
 
 (defun org-treescope-calendarranges--sensible-values ()
   "Check that all time flankers are initialised and at sensible defaults."
-  ;; We deal with absolute dates, not gregorian.
+  ;; We deal with absolute dates, not sith (gregorian).
   (let* ((mid (org-treescope-datehelper--getmidpoint-abs))
          ;; If not set, then flank the midpoint 3 days either side
          (lflank (or org-treescope-calendarranges--day--leftflank (- mid 3)))
          (rflank (or org-treescope-calendarranges--day--rightflank (+ mid 3))))
     ;; -- check sensible values --
     (if (> lflank rflank)  ;; left outflanks right
-        (setq rflank (1+ lflank)))
-    (if (< rflank lflank)  ;; right outflanks left
         (setq lflank (1- rflank)))
+    (if (< rflank lflank)  ;; right outflanks left
+        (setq rflank (1+ lflank)))
     (setq org-treescope-calendarranges--day--leftflank lflank
           org-treescope-calendarranges--day--rightflank rflank)))
 
@@ -61,7 +61,7 @@
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
     (setq org-treescope-calendarranges--day--leftflank (+ lflank ndays))
-    (if (<= lflank midpoint rflank)
+    (if (not (<= lflank midpoint rflank))
         (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute lflank)))
     (unless silent
       (org-treescope-calendarranges--sensible-values)
@@ -76,7 +76,7 @@
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
     (setq org-treescope-calendarranges--day--leftflank (- lflank ndays))
-    (if (<= lflank midpoint rflank)
+    (if (not (<= lflank midpoint rflank))
         (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute lflank)))
     (unless silent
       (org-treescope-calendarranges--sensible-values)
@@ -91,7 +91,7 @@
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
     (setq org-treescope-calendarranges--day--rightflank (+ rflank ndays))
-    (if (<= lflank midpoint rflank)
+    (if (not (<= lflank midpoint rflank))
         (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute rflank)))
     (unless silent
       (org-treescope-calendarranges--sensible-values)
@@ -106,7 +106,7 @@
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
     (setq org-treescope-calendarranges--day--rightflank (- rflank ndays))
-    (if (<= lflank midpoint rflank)
+    (if (not (<= lflank midpoint rflank))
         (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute rflank)))
     (unless silent
       (org-treescope-calendarranges--sensible-values)
