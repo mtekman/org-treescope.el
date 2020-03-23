@@ -168,17 +168,14 @@
   (org-treescope-calendarranges-day-shiftrange-backwards 7 silent))
 
 ;;;###autoload
-(defun org-treescope-calendarranges-day-shiftrange-forwards-week ()
-  "Shift entire range forwards by a week and update midpoint."
+(defun org-treescope-calendarranges-day-shiftrange-forwards-week (&optional silent)
+  "Shift entire range forwards by a week and update midpoint.  Don't update if SILENT."
   (interactive)
   ;; FIXME: why doesn't (org-treescope-calendarranges-day-shiftrange-forwards 7 t) work reliably?
   ;;       - it seems any number over 3 does not jump to where it should,
   ;;       - does not seem to be related to the sensible-values mid 3 thing
   ;;       - it seems like the calendar cursor is not set properly
-  (org-treescope-calendarranges-day-shiftrange-forwards 3 t)
-  (org-treescope-calendarranges-day-shiftrange-forwards 3 t)
-  (org-treescope-calendarranges-day-shiftrange-forwards 1 nil))
-
+  (org-treescope-calendarranges-day-shiftrange-forwards 7 silent))
 ;; Add controls to mode
 (dolist (pair '(("<left>" . org-treescope-calendarranges-day-shiftrange-backwards)
                 ("<right>" . org-treescope-calendarranges-day-shiftrange-forwards)

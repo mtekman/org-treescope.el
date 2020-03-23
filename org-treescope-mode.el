@@ -39,26 +39,27 @@
       (define-key map (kbd (car keypair)) (cdr keypair))))
   "Keymap for function `org-treescope-mode'.")
 
-(defun org-treescope-mode-refresh-calendar ()
-  "Enable the calendar and update the flanks."
-  (unless (member "*Calendar*"
-                  (-map (lambda (it) (buffer-name (window-buffer it)))
-                        (window-list)))
-    (calendar))
-  ;;(org-treescope-mode t) -- add hook here instead in the main part
-  (calendar-unmark)
-  (org-treescope-query--redraw-calendar))
-
 (define-minor-mode org-treescope-mode
   "Minor Mode to control date ranges, todo and priority states."
   nil
   " scope"
   org-treescope-mode-map)
 
+(defun org-treescope-mode-refresh-calendar ()
+  "Enable the calendar and update the flanks."
+  (unless (member "*Calendar*"
+                  (-map (lambda (it) (buffer-name (window-buffer it)))
+                        (window-list)))
+    (calendar))
+  (org-treescope-mode t)
+  (calendar-unmark)
+  (org-treescope-query--redraw-calendar))
+
+
 (defun org-treescope-mode-addpublic ()
   "Add public finish functions."
   (org-treescope-mode-refresh-calendar)
-  (org-treescope-query-apply-to-buffer))
+  (org-treescope-query-apply-to-buffer)) 
 
 (add-hook 'org-treescope-modehelper--publicfinishhook
           'org-treescope-mode-addpublic)
