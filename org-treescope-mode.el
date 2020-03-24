@@ -27,9 +27,8 @@
 ;;; Code:
 (require 'cal-move)
 
-(require 'org-treescope-cyclestates) ;; brings nil
-(require 'org-treescope-calendarranges) ;; brings datehelper, calendar, and faces
-(require 'org-treescope-modehelper)
+(require 'org-treescope-query)
+;; brings faces, cyclestates, calendarranges, datehelper, calendar
 
 (defvar org-treescope-mode-map
   (let ((map (make-sparse-keymap))
@@ -59,7 +58,7 @@
 (defun org-treescope-mode-addpublic ()
   "Add public finish functions."
   (org-treescope-mode-refresh-calendar)
-  (org-treescope-query-apply-to-buffer)) 
+  (org-treescope-query-apply-to-buffer))
 
 (add-hook 'org-treescope-modehelper--publicfinishhook
           'org-treescope-mode-addpublic)

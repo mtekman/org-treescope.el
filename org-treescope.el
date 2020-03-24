@@ -29,7 +29,7 @@
 ;;; Code:
 (require 'org-ql)
 
-(require 'org-treescope-mode)
+(require 'org-treescope-mode) ;; brings cyclestates, datehelper, calendarranges, faces
 
 (defgroup org-treescope nil "org-treescope customisable variables."
   :group 'productivity)
@@ -42,6 +42,7 @@
         org-treescope-calendarranges--day--rightflank nil
         org-treescope-calendarranges--day--frommidpoint-select nil)
   (org-treescope-calendarranges--sensible-values)
+  (find-file org-treescope-query-userbuffer)
   (org-treescope-mode-refresh-calendar))
 
 (provide 'org-treescope)
