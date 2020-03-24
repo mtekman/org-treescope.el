@@ -61,9 +61,10 @@
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
     (setq org-treescope-calendarranges--day--leftflank (+ lflank ndays))
-    (if (not (<= lflank midpoint rflank))
-        (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute lflank)))
     (unless silent
+      ;; Only do error checking on calendar updates
+      (if (not (<= lflank midpoint rflank))
+          (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute lflank)))
       (org-treescope-calendarranges--sensible-values)
       (org-treescope-modehelper--runpublichook))))
 
@@ -76,9 +77,10 @@
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
     (setq org-treescope-calendarranges--day--leftflank (- lflank ndays))
-    (if (not (<= lflank midpoint rflank))
-        (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute lflank)))
     (unless silent
+      ;; Only do error checking on calendar updates
+      (if (not (<= lflank midpoint rflank))
+          (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute lflank)))
       (org-treescope-calendarranges--sensible-values)
       (org-treescope-modehelper--runpublichook))))
 
@@ -91,9 +93,10 @@
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
     (setq org-treescope-calendarranges--day--rightflank (+ rflank ndays))
-    (if (not (<= lflank midpoint rflank))
-        (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute rflank)))
     (unless silent
+      ;; Only do error checking on calendar updates
+      (if (not (<= lflank midpoint rflank))
+          (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute rflank)))
       (org-treescope-calendarranges--sensible-values)
       (org-treescope-modehelper--runpublichook))))
 
@@ -106,9 +109,10 @@
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
     (setq org-treescope-calendarranges--day--rightflank (- rflank ndays))
-    (if (not (<= lflank midpoint rflank))
-        (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute rflank)))
     (unless silent
+      ;; Only do error checking on calendar updates
+      (if (not (<= lflank midpoint rflank))
+          (calendar-cursor-to-visible-date (calendar-gregorian-from-absolute rflank)))
       (org-treescope-calendarranges--sensible-values)
       (org-treescope-modehelper--runpublichook))))
 
@@ -142,10 +146,9 @@
   "Shift entire range back by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays (or ndays 1)))
-    (progn 
-      (org-treescope-calendarranges-day-lowerbound-backwards ndays t)
-      (calendar-forward-day (- ndays))
-      (org-treescope-calendarranges-day-upperbound-backwards ndays t)))
+    (org-treescope-calendarranges-day-lowerbound-backwards ndays t)
+    (calendar-forward-day (- ndays))
+    (org-treescope-calendarranges-day-upperbound-backwards ndays t))
   (unless silent
     (org-treescope-calendarranges--sensible-values)
     (org-treescope-modehelper--runpublichook)))
@@ -155,10 +158,9 @@
   "Shift entire range forwards by NDAYS and update midpoint.  Don't update if SILENT."
   (interactive)
   (let ((ndays (or ndays 1)))
-    (progn 
-      (calendar-forward-day (+ ndays))
-      (org-treescope-calendarranges-day-lowerbound-forwards ndays t)
-      (org-treescope-calendarranges-day-upperbound-forwards ndays t)))
+    (org-treescope-calendarranges-day-lowerbound-forwards ndays t)
+    (calendar-forward-day (+ ndays))
+    (org-treescope-calendarranges-day-upperbound-forwards ndays t))
   (unless silent
     (org-treescope-calendarranges--sensible-values)
     (org-treescope-modehelper--runpublichook)))
@@ -173,11 +175,8 @@
 (defun org-treescope-calendarranges-day-shiftrange-forwards-week (&optional silent)
   "Shift entire range forwards by a week and update midpoint.  Don't update if SILENT."
   (interactive)
-  ;; FIXME: why doesn't (org-treescope-calendarranges-day-shiftrange-forwards 7 t) work reliably?
-  ;;       - it seems any number over 3 does not jump to where it should,
-  ;;       - does not seem to be related to the sensible-values mid 3 thing
-  ;;       - it seems like the calendar cursor is not set properly
   (org-treescope-calendarranges-day-shiftrange-forwards 7 silent))
+
 ;; Add controls to mode
 (dolist (pair '(("<left>" . org-treescope-calendarranges-day-shiftrange-backwards)
                 ("<right>" . org-treescope-calendarranges-day-shiftrange-forwards)
