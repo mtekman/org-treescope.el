@@ -3,25 +3,29 @@
 # NOTE: HTML for the GitHub renderer, courtesy of alphapapa for the template.
 #+HTML: <a href="https://melpa.org/#/org-treescope"><img src="https://melpa.org/packages/org-treescope-badge.svg"></a> <a href="https://stable.melpa.org/#/org-treescope"><img src="https://stable.melpa.org/packages/org-treescope-badge.svg"></a>
 
-Many people place the power of org-mode into the reports provided by org-agenda, which filters and summarizes org entries by tags, todo states, priorities and tags. 
+Many people place the power of org-mode into the reports provided by org-agenda, which filters and summarizes org entries by tags, todo states, priorities and tags.
 
 I don't do that. My mind is simple. I like trees. Trees are easy. You have one org mode file and you filter it for what you need, whether it's a quick glance at what you did last week or a peek at what you're currently working on. This package provides an interactive filter window using the excellent [[https://github.com/alphapapa/org-ql][org-ql]] library as well as the calendar window from =calendar.el= to help with defining the scope of the filtering query.
 
 
-#+HTML: <img src="https://user-images.githubusercontent.com/20641402/76669693-15dfbd00-658d-11ea-919b-0dc9376a893e.gif" />
+#+HTML: <img src="https://user-images.githubusercontent.com/20641402/77492692-7dc1bd80-6e41-11ea-8618-a7f1c7161700.gif" />
 
 
 ** Installation
 
    #+begin_src elisp
      (use-package org-treescope
-       :custom (org-treescope-query-userbuffer "~/path/to/projects.org")
-       :bind (("C-c M-t" . org-treescope)))       
+       :custom
+       (org-treescope-query-userbuffer "~/path/to/projects.org")
+       (org-treescope-cyclestates-todo '(nil ("TODO") ("WAITING" "DONE")))
+       (org-treescope-cyclestates-priority '(nil ("A" "B" "C") ("D")))
+       :bind
+       (("C-c M-t" . org-treescope)))
    #+end_src
 
 ** Usage
 
-   Once =org-treescope= is run, a minor mode is launched with the following controls which are designed to not interfere with =calendar-mode=. 
+   Once =org-treescope= is run, a minor mode is launched with the following controls which are designed to not interfere with =calendar-mode=.
 
 **** Time Range Shift
 
