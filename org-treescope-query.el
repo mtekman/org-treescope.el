@@ -1,12 +1,6 @@
 ;;; org-treescope-query.el --- Constructing and applying org-ql queries -*- lexical-binding: t; -*-
 
-;; Copright (C) 2020 Mehmet Tekman <mtekman89@gmail.com>
-
-;; Author: Mehmet Tekman
-;; URL: https://github.com/mtekman/org-treescope.el
-;; Keywords: outlines
-;; Package-Requires: ((emacs "24.3") (org "9.2.3") (org-ql "0.5-pre") (dash "2.17.0"))
-;; Version: 0.5
+;; Copyright (C) 2020 Mehmet Tekman <mtekman89@gmail.com>
 
 ;;; License:
 

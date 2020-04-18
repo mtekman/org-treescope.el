@@ -1,6 +1,6 @@
 ;;; org-treescope.el --- Time scoping sparse trees within org -*- lexical-binding: t; -*-
 
-;; Copright (C) 2020 Mehmet Tekman <mtekman89@gmail.com>
+;; Copyright (C) 2020 Mehmet Tekman <mtekman89@gmail.com>
 
 ;; Author: Mehmet Tekman
 ;; URL: https://github.com/mtekman/org-treescope.el
