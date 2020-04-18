@@ -38,9 +38,9 @@
 (defun org-treescope ()
   "Reset all variables and center around current date."
   (interactive)
-  (setq org-treescope-calendarranges--day--leftflank nil
-        org-treescope-calendarranges--day--rightflank nil
-        org-treescope-calendarranges--day--frommidpoint-select nil)
+  (setq-local org-treescope-calendarranges--day--leftflank nil)
+  (setq-local org-treescope-calendarranges--day--rightflank nil)
+  (setq-local org-treescope-calendarranges--day--frommidpoint-select nil)
   (org-treescope-calendarranges--sensible-values)
   (find-file org-treescope-query-userbuffer)
   (org-treescope-mode-refresh-calendar))
