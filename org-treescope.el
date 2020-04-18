@@ -27,8 +27,6 @@
 ;; This tool provides a time window to analyse your org file.
 
 ;;; Code:
-(require 'org-ql)
-
 (require 'org-treescope-mode) ;; brings cyclestates, datehelper, calendarranges, faces
 
 (defgroup org-treescope nil "org-treescope customisable variables."

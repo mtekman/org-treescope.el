@@ -19,6 +19,7 @@
 ;; see org-treescope.el
 
 ;;; Code:
+(require 'org-ql)
 (require 'org-treescope-faces) ;; brings nil
 (require 'org-treescope-cyclestates) ;; brings nil
 (require 'org-treescope-calendarranges) ;; brings datehelper, calendar, and faces
