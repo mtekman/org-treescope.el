@@ -26,9 +26,9 @@
 (require 'org-treescope-faces) ;; brings nil
 (require 'org-treescope-modehelper)
 
-(defvar-local org-treescope-calendarranges--day--leftflank nil)
-(defvar-local org-treescope-calendarranges--day--rightflank nil)
-(defvar-local org-treescope-calendarranges--day--frommidpoint-select nil
+(defvar org-treescope-calendarranges--day--leftflank nil)
+(defvar org-treescope-calendarranges--day--rightflank nil)
+(defvar org-treescope-calendarranges--day--frommidpoint-select nil
   "Possible values are `:to' and `:from'.")
 
 (defun org-treescope-calendarranges--sensible-values ()
@@ -43,8 +43,8 @@
         (setq lflank (1- rflank)))
     (if (< rflank lflank)  ;; right outflanks left
         (setq rflank (1+ lflank)))
-    (setq-local org-treescope-calendarranges--day--leftflank lflank)
-    (setq-local org-treescope-calendarranges--day--rightflank rflank)))
+    (setq org-treescope-calendarranges--day--leftflank lflank)
+    (setq org-treescope-calendarranges--day--rightflank rflank)))
 
 ;; -- Date Methods
 ;;;###autoload
@@ -55,7 +55,7 @@
         (midpoint (org-treescope-datehelper--getmidpoint-abs))
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
-    (setq-local org-treescope-calendarranges--day--leftflank (+ lflank ndays))
+    (setq org-treescope-calendarranges--day--leftflank (+ lflank ndays))
     (unless silent
       ;; Only do error checking on calendar updates
       (if (not (<= lflank midpoint rflank))
@@ -71,7 +71,7 @@
         (midpoint (org-treescope-datehelper--getmidpoint-abs))
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
-    (setq-local org-treescope-calendarranges--day--leftflank (- lflank ndays))
+    (setq org-treescope-calendarranges--day--leftflank (- lflank ndays))
     (unless silent
       ;; Only do error checking on calendar updates
       (if (not (<= lflank midpoint rflank))
@@ -87,7 +87,7 @@
         (midpoint (org-treescope-datehelper--getmidpoint-abs))
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
-    (setq-local org-treescope-calendarranges--day--rightflank (+ rflank ndays))
+    (setq org-treescope-calendarranges--day--rightflank (+ rflank ndays))
     (unless silent
       ;; Only do error checking on calendar updates
       (if (not (<= lflank midpoint rflank))
@@ -103,7 +103,7 @@
         (midpoint (org-treescope-datehelper--getmidpoint-abs))
         (lflank org-treescope-calendarranges--day--leftflank)
         (rflank org-treescope-calendarranges--day--rightflank))
-    (setq-local org-treescope-calendarranges--day--rightflank (- rflank ndays))
+    (setq org-treescope-calendarranges--day--rightflank (- rflank ndays))
     (unless silent
       ;; Only do error checking on calendar updates
       (if (not (<= lflank midpoint rflank))
@@ -115,7 +115,7 @@
 (defun org-treescope-calendarranges-day-frommidpoint-leftwards (&optional  silent)
   "Ignore left and right flanks, and select all dates before midpoint.  Don't update if SILENT."
   (interactive)
-  (setq-local org-treescope-calendarranges--day--frommidpoint-select :to)
+  (setq org-treescope-calendarranges--day--frommidpoint-select :to)
   (unless silent
     (org-treescope-calendarranges--sensible-values)
     (org-treescope-modehelper--runpublichook)))
@@ -124,7 +124,7 @@
 (defun org-treescope-calendarranges-day-frommidpoint-rightwards (&optional silent)
   "Ignore left and right flanks, and select all dates after midpoint.  Don't update if SILENT."
   (interactive)
-  (setq-local org-treescope-calendarranges--day--frommidpoint-select :from)
+  (setq org-treescope-calendarranges--day--frommidpoint-select :from)
   (unless silent
     (org-treescope-calendarranges--sensible-values)
     (org-treescope-modehelper--runpublichook)))
@@ -133,7 +133,7 @@
 (defun org-treescope-calendarranges-day-frommidpoint-stop ()
   "Set the flank selector to nothing and restore shift range mode."
   (interactive)
-  (setq-local org-treescope-calendarranges--day--frommidpoint-select nil)
+  (setq org-treescope-calendarranges--day--frommidpoint-select nil)
   (org-treescope-modehelper--runpublichook))
 
 ;;;###autoload

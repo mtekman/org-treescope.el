@@ -24,10 +24,9 @@
 (require 'org-treescope-cyclestates) ;; brings nil
 (require 'org-treescope-calendarranges) ;; brings datehelper, calendar, and faces
 
-(defcustom org-treescope-query-userbuffer nil
-  "Apply match function to a specific user-defined `org-mode' file.  Cannot be nil otherwise attempts to apply to calendar buffer."
-  :type 'string
-  :group 'org-treescope)
+(defvar org-treescope-query--buffer nil
+  "Apply match function to this file.
+Cannot be nil otherwise attempts to apply to calendar buffer.")
 
 (defun org-treescope-query--generate-datestring ()
   "Generate the date string based on current state."
