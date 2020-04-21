@@ -91,7 +91,7 @@ Also switch to org buffer and then reselect the calendar window."
   (let ((query (or query (org-treescope-query--make-query)))
         (cwin (get-buffer-window "*Calendar*")))
     (when query
-      (with-current-buffer (find-file-noselect org-treescope-query-userbuffer)
+      (with-current-buffer org-treescope-query--buffer
         (let ((pos (point)))
           (org-ql-sparse-tree query)
           (goto-char pos)
