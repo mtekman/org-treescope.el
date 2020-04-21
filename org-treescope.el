@@ -27,21 +27,57 @@
 ;; This tool provides a time window to analyse your org file.
 
 ;;; Code:
-(require 'org-treescope-mode) ;; brings cyclestates, datehelper, calendarranges, faces
+(require 'cal-move)
 
-(defgroup org-treescope nil "org-treescope customisable variables."
+(require 'org-treescope-query)
+;; brings faces, cyclestates, calendarranges, datehelper, calendar
+
+(defgroup org-treescope nil
+  "org-treescope customisable variables."
   :group 'productivity)
 
-;;;###autoload
-(defun org-treescope ()
-  "Reset all variables and center around current date."
-  (interactive)
-  (setq org-treescope-calendarranges--day--leftflank nil
-        org-treescope-calendarranges--day--rightflank nil
-        org-treescope-calendarranges--day--frommidpoint-select nil)
-  (org-treescope-calendarranges--sensible-values)
-  (find-file org-treescope-query-userbuffer)
-  (org-treescope-mode-refresh-calendar))
+(defvar org-treescope-mode-map
+  (let ((map (make-sparse-keymap))
+        (lst org-treescope-modehelper-list))
+    (set-keymap-parent map calendar-mode-map)
+    (dolist (keypair lst map)
+      (define-key map (kbd (car keypair)) (cdr keypair))))
+  "Keymap for function `org-treescope-mode'.")
+
+(define-minor-mode org-treescope-mode
+  "Minor mode to control date ranges, todo and priority states."
+  nil
+  " scope"
+  org-treescope-mode-map
+  (if (string-suffix-p ".org" (buffer-file-name))
+      (when org-treescope-mode
+        (setq org-treescope-calendarranges--day--leftflank nil
+              org-treescope-calendarranges--day--rightflank nil
+              org-treescope-calendarranges--day--frommidpoint-select nil
+              org-treescope-query--buffer (current-buffer))
+        (org-treescope-calendarranges--sensible-values)
+        (org-treescope-refresh-calendar))
+    (message "Not an org file.")))
+
+
+(defun org-treescope-refresh-calendar ()
+  "Enable the calendar and update the flanks."
+  (unless (member "*Calendar*"
+                  (-map (lambda (it) (buffer-name (window-buffer it)))
+                        (window-list)))
+    (calendar))
+  (org-treescope-mode t)
+  (calendar-unmark)
+  (org-treescope-query--redraw-calendar))
+
+
+(defun org-treescope-addpublic ()
+  "Add public finish functions."
+  (org-treescope-refresh-calendar)
+  (org-treescope-query-apply-to-buffer))
+
+(add-hook 'org-treescope-modehelper--publicfinishhook
+          'org-treescope-addpublic)
 
 (provide 'org-treescope)
 ;;; org-treescope.el ends here
