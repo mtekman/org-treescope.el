@@ -36,9 +36,19 @@
   "org-treescope customisable variables."
   :group 'productivity)
 
+(defun org-treescope-exit ()
+  "Exit calendar and restore original org buffer to normal state."
+  (interactive)
+  (with-current-buffer org-treescope-modehelper--orgbuffer
+    (org-treescope-mode -1))
+  (calendar-exit))
+
 (defvar org-treescope-mode-map
+  ;; Add exit function
   (let ((map (make-sparse-keymap))
         (lst org-treescope-modehelper-list))
+    (cl-pushnew '(("q" . org-treescope-exit))
+                org-treescope-modehelper-list)
     (set-keymap-parent map calendar-mode-map)
     (dolist (keypair lst map)
       (define-key map (kbd (car keypair)) (cdr keypair))))
