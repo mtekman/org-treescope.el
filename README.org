@@ -1,7 +1,7 @@
 #+TITLE: org-treescope.el
 
 # NOTE: HTML for the GitHub renderer, courtesy of alphapapa for the template.
-#+HTML: <a href="https://melpa.org/#/org-treescope"><img src="https://melpa.org/packages/org-treescope-badge.svg"></a> <a href="https://stable.melpa.org/#/org-treescope"><img src="https://stable.melpa.org/packages/org-treescope-badge.svg"></a>
+#+HTML: <a href="https://melpa.org/#/org-treescope"><img src="https://melpa.org/packages/org-treescope-badge.svg"></a>
 
 Many people place the power of org-mode into the reports provided by org-agenda, which filters and summarizes org entries by tags, todo states, priorities and tags.
 
