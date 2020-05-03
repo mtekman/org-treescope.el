@@ -24,10 +24,6 @@
 (require 'org-treescope-cyclestates) ;; brings nil
 (require 'org-treescope-calendarranges) ;; brings datehelper, calendar, and faces
 
-(defvar org-treescope-query--buffer nil
-  "Apply match function to this file.
-Cannot be nil otherwise attempts to apply to calendar buffer.")
-
 (defun org-treescope-query--generate-datestring ()
   "Generate the date string based on current state."
   (when org-treescope-cyclestates--time-s
@@ -91,7 +87,7 @@ Also switch to org buffer and then reselect the calendar window."
   (let ((query (or query (org-treescope-query--make-query)))
         (cwin (get-buffer-window "*Calendar*")))
     (when query
-      (with-current-buffer org-treescope-query--buffer
+      (with-current-buffer org-treescope-modehelper--orgbuffer
         (let ((pos (point)))
           (org-ql-sparse-tree query)
           (goto-char pos)

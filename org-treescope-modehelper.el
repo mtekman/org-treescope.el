@@ -27,6 +27,9 @@
 (defvar org-treescope-modehelper--publicfinishhook nil
   "Hook to run at the end of a public function.")
 
+(defvar org-treescope-modehelper--orgbuffer nil
+  "Apply match function to org buffer.")
+
 (defun org-treescope-modehelper--runpublichook ()
   "Run the public finish hook."
   (run-hooks 'org-treescope-modehelper--publicfinishhook))
