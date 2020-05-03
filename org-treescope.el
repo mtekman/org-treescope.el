@@ -54,21 +54,26 @@
       (define-key map (kbd (car keypair)) (cdr keypair))))
   "Keymap for function `org-treescope-mode'.")
 
-(define-minor-mode org-treescope-mode
-  "Minor mode to control date ranges, todo and priority states."
+(define-minor-mode org-treescope-calendar-mode
+  "Minor mode to control date ranges, todo and priority states in *Calendar* buffer."
   nil
-  " scope"
-  org-treescope-mode-map
+  " ts-cal"
+  org-treescope-mode-map)
+
+(define-minor-mode org-treescope-mode
+  "Minor mode to for org-treescope that operates on the org buffer"
+  nil
+  " ts"
+  nil
   (if (string-suffix-p ".org" (buffer-file-name))
       (when org-treescope-mode
         (setq org-treescope-calendarranges--day--leftflank nil
               org-treescope-calendarranges--day--rightflank nil
               org-treescope-calendarranges--day--frommidpoint-select nil
-              org-treescope-query--buffer (current-buffer))
+              org-treescope-modehelper--orgbuffer (current-buffer))
         (org-treescope-calendarranges--sensible-values)
         (org-treescope-refresh-calendar))
     (message "Not an org file.")))
-
 
 (defun org-treescope-refresh-calendar ()
   "Enable the calendar and update the flanks."
@@ -76,10 +81,9 @@
                   (-map (lambda (it) (buffer-name (window-buffer it)))
                         (window-list)))
     (calendar))
-  (org-treescope-mode t)
+  (org-treescope-calendar-mode t)
   (calendar-unmark)
   (org-treescope-query--redraw-calendar))
-
 
 (defun org-treescope-addpublic ()
   "Add public finish functions."
