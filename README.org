@@ -1,5 +1,12 @@
 #+TITLE: org-treescope.el
 
+*** This repo has migrated to GitLab
+https://gitlab.com/mtekman/org-treescope.el
+****** (The copy here is archived. Please see the above link for the latest developments)
+
+#+HTML: <hr/>
+
+
 # NOTE: HTML for the GitHub renderer, courtesy of alphapapa for the template.
 #+HTML: <a href="https://melpa.org/#/org-treescope"><img src="https://melpa.org/packages/org-treescope-badge.svg"></a>
 
